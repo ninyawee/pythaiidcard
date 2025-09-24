@@ -1,0 +1,22 @@
+[project]
+name = "pythaiid"
+version = "0.1.0"
+description = "Python library for reading Thai national ID cards"
+license = {text = "ISC"}
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pillow>=11.3.0",
+    "pyscard>=2.3.0",
+    "pydantic>=2.0",
+    "typer[all]>=0.9.0",
+    "python-dateutil>=2.8.2",
+]
+
+[project.scripts]
+pythaiid = "pythaiid.cli:app"
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.8.4",
+]

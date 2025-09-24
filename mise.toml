@@ -1,0 +1,21 @@
+[tools]
+python = "3.12"
+uv = "latest"
+
+[tasks.install-deps]
+description = "Install system dependencies for smartcard reader"
+run = """
+sudo apt-get update
+sudo apt-get install -y pcscd libpcsclite-dev python3-dev swig
+"""
+
+[tasks.setup]
+description = "Setup the project with uv"
+depends = ["install-deps"]
+run = """
+uv add pyscard pillow
+"""
+
+[tasks.run]
+description = "Run pythaiid - Thai ID card reader"
+run = "uv run python thai-idcard.py"

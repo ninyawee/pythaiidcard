@@ -1,0 +1,59 @@
+"""Thai National ID Card Reader Library.
+
+A Python library for reading data from Thai National ID cards using smart card readers.
+"""
+
+__version__ = "0.1.0"
+
+from .exceptions import (
+    CardConnectionError,
+    CardTimeoutError,
+    CommandError,
+    DataReadError,
+    InvalidCardError,
+    InvalidReaderIndexError,
+    NoCardDetectedError,
+    NoReaderFoundError,
+    ThaiIDCardException,
+)
+from .models import CardReaderInfo, ThaiIDCard
+from .reader import ThaiIDCardReader, read_thai_id_card
+from .utils import (
+    calculate_age,
+    format_address,
+    format_cid,
+    is_card_expired,
+    parse_buddhist_date,
+    thai_to_unicode,
+    validate_cid,
+)
+
+__all__ = [
+    # Main classes
+    "ThaiIDCardReader",
+    "ThaiIDCard",
+    "CardReaderInfo",
+    
+    # Convenience functions
+    "read_thai_id_card",
+    
+    # Utilities
+    "format_cid",
+    "validate_cid",
+    "thai_to_unicode",
+    "parse_buddhist_date",
+    "format_address",
+    "calculate_age",
+    "is_card_expired",
+    
+    # Exceptions
+    "ThaiIDCardException",
+    "NoReaderFoundError",
+    "NoCardDetectedError",
+    "CardConnectionError",
+    "InvalidCardError",
+    "CommandError",
+    "DataReadError",
+    "InvalidReaderIndexError",
+    "CardTimeoutError",
+]
