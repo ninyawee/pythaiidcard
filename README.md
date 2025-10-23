@@ -2,9 +2,9 @@
 
 Python library for reading Thai national ID cards using smartcard readers.
 
-![pythaiidcard Cover](docs/assets/pythaiidcard-cover.png)
+![pythaiidcard Cover](https://raw.githubusercontent.com/ninyawee/pythaiidcard/master/docs/assets/pythaiidcard-cover.png)
 
-![Thai ID Card Reader Demo](<docs/assets/debug interface.png>)
+![Thai ID Card Reader Demo](https://raw.githubusercontent.com/ninyawee/pythaiidcard/master/docs/assets/debug%20interface.png)
 
 ## Table of Contents
 
