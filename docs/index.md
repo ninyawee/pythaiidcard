@@ -5,6 +5,8 @@
 [![License](https://img.shields.io/badge/license-ISC-blue.svg)](https://github.com/ninyawee/pythaiidcard/blob/master/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 
+![pythaiidcard Cover](assets/pythaiidcard-cover.png)
+
 ![Thai ID Card Reader Demo](<assets/debug interface.png>)
 
 ## Features
