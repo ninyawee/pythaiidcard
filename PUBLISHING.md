@@ -1,6 +1,6 @@
-# Publishing Guide for pythaiid
+# Publishing Guide for pythaiidcard
 
-This guide covers building and publishing pythaiid to PyPI using `uv`.
+This guide covers building and publishing pythaiidcard to PyPI using `uv`.
 
 ## Prerequisites
 
@@ -39,7 +39,7 @@ Update the version in two places:
 version = "0.1.0"  # Update this
 ```
 
-2. **pythaiid/__init__.py**:
+2. **pythaiidcard/__init__.py**:
 ```python
 __version__ = "0.1.0"  # Update this
 ```
@@ -49,22 +49,26 @@ __version__ = "0.1.0"  # Update this
 ### Clean Previous Builds
 
 ```bash
-# Remove old distributions
-rm -rf dist/
-rm -rf build/
-rm -rf *.egg-info
+# Using mise
+mise run clean
+
+# Or manually
+rm -rf dist/ build/ *.egg-info
 ```
 
 ### Build with uv
 
 ```bash
-# Build source distribution and wheel
+# Using mise (recommended)
+mise run build
+
+# Or directly with uv
 uv build
 ```
 
 This creates:
-- `dist/pythaiid-{version}-py3-none-any.whl` (wheel)
-- `dist/pythaiid-{version}.tar.gz` (source distribution)
+- `dist/pythaiidcard-{version}-py3-none-any.whl` (wheel)
+- `dist/pythaiidcard-{version}.tar.gz` (source distribution)
 
 ### Verify Build
 
@@ -72,18 +76,18 @@ Check what's included in the package:
 
 ```bash
 # List wheel contents
-python -m zipfile -l dist/pythaiid-*.whl
+python -m zipfile -l dist/pythaiidcard-*.whl
 
 # List tarball contents
-tar -tzf dist/pythaiid-*.tar.gz
+tar -tzf dist/pythaiidcard-*.tar.gz
 ```
 
 Verify metadata:
 
 ```bash
 # Check package metadata
-python -m tarfile -l dist/pythaiid-*.tar.gz | grep METADATA
-tar -xzf dist/pythaiid-*.tar.gz --to-stdout '*/METADATA' | less
+python -m tarfile -l dist/pythaiidcard-*.tar.gz | grep METADATA
+tar -xzf dist/pythaiidcard-*.tar.gz --to-stdout '*/METADATA' | less
 ```
 
 ## Publishing
@@ -93,7 +97,10 @@ tar -xzf dist/pythaiid-*.tar.gz --to-stdout '*/METADATA' | less
 Test your package on TestPyPI before publishing to production PyPI:
 
 ```bash
-# Publish to TestPyPI
+# Using mise (recommended)
+UV_PUBLISH_TOKEN=pypi-YOUR_TESTPYPI_TOKEN mise run publish-test
+
+# Or directly with uv
 uv publish --publish-url https://test.pypi.org/legacy/ --token pypi-YOUR_TESTPYPI_TOKEN
 ```
 
@@ -101,7 +108,7 @@ Or use environment variable:
 
 ```bash
 export UV_PUBLISH_TOKEN=pypi-YOUR_TESTPYPI_TOKEN
-uv publish --publish-url https://test.pypi.org/legacy/
+mise run publish-test
 ```
 
 Test installation from TestPyPI:
@@ -112,10 +119,10 @@ uv venv test-env
 source test-env/bin/activate
 
 # Install from TestPyPI
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple pythaiid
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple pythaiidcard
 
 # Test it works
-python -c "from pythaiid import ThaiIDCardReader; print('Success!')"
+python -c "from pythaiidcard import ThaiIDCardReader; print('Success!')"
 
 # Clean up
 deactivate
@@ -127,7 +134,10 @@ rm -rf test-env
 Once verified on TestPyPI, publish to production:
 
 ```bash
-# Publish to PyPI
+# Using mise (recommended - includes confirmation prompt)
+UV_PUBLISH_TOKEN=pypi-YOUR_PYPI_TOKEN mise run publish
+
+# Or directly with uv
 uv publish --token pypi-YOUR_PYPI_TOKEN
 ```
 
@@ -135,7 +145,7 @@ Or use environment variable:
 
 ```bash
 export UV_PUBLISH_TOKEN=pypi-YOUR_PYPI_TOKEN
-uv publish
+mise run publish  # Will prompt for confirmation
 ```
 
 ### Using Stored Credentials
@@ -181,7 +191,7 @@ git push origin v0.1.0
 
 ### 2. Create GitHub Release
 
-1. Go to https://github.com/ninyawee/pythaiid/releases/new
+1. Go to https://github.com/ninyawee/pythaiidcard/releases/new
 2. Select the tag you just created
 3. Add release notes (from CHANGELOG)
 4. Attach the distribution files (optional)
@@ -197,10 +207,10 @@ uv venv verify-env
 source verify-env/bin/activate
 
 # Install from PyPI
-pip install pythaiid
+pip install pythaiidcard
 
 # Verify
-python -c "import pythaiid; print(pythaiid.__version__)"
+python -c "import pythaiidcard; print(pythaiidcard.__version__)"
 
 # Clean up
 deactivate
@@ -251,7 +261,7 @@ HTTP Error 400: File already exists
 ### Package Name Taken
 
 ```
-HTTP Error 403: The name 'pythaiid' is too similar to an existing project
+HTTP Error 403: The name 'pythaiidcard' is too similar to an existing project
 ```
 
 **Solution**:
@@ -264,7 +274,7 @@ If package is unexpectedly large:
 
 ```bash
 # Check what's included
-tar -tzf dist/pythaiid-*.tar.gz
+tar -tzf dist/pythaiidcard-*.tar.gz
 
 # Add patterns to .gitignore or use [tool.hatch.build] in pyproject.toml
 ```
@@ -321,24 +331,47 @@ Pre-release versions:
 ## Quick Reference
 
 ```bash
-# Clean
-rm -rf dist/
+# View all available tasks
+mise tasks
 
-# Build
-uv build
+# Clean build artifacts
+mise run clean
+
+# Build package
+mise run build
+
+# Run all verification checks
+mise run verify
 
 # Test on TestPyPI
-uv publish --publish-url https://test.pypi.org/legacy/ --token pypi-TOKEN
+UV_PUBLISH_TOKEN=pypi-TOKEN mise run publish-test
 
 # Publish to PyPI
-uv publish --token pypi-TOKEN
+UV_PUBLISH_TOKEN=pypi-TOKEN mise run publish
 
 # Tag and push
 git tag -a v0.1.0 -m "Release v0.1.0"
 git push origin v0.1.0
 
 # Deploy docs
-uv run mkdocs gh-deploy
+mise run docs-deploy
+```
+
+### All Available Tasks
+
+```bash
+mise run build         # Build distribution packages
+mise run clean         # Clean build artifacts and cache
+mise run dev           # Install all dependencies
+mise run docs-build    # Build documentation
+mise run docs-deploy   # Deploy docs to GitHub Pages
+mise run docs-serve    # Serve docs locally
+mise run format        # Format code with ruff
+mise run format-check  # Check code formatting
+mise run lint          # Run linting checks
+mise run publish       # Publish to PyPI
+mise run publish-test  # Publish to TestPyPI
+mise run verify        # Run all verification checks
 ```
 
 ## Security Best Practices
@@ -355,10 +388,10 @@ uv run mkdocs gh-deploy
 For publishing issues:
 - PyPI Status: https://status.python.org/
 - PyPI Support: https://pypi.org/help/
-- GitHub Issues: https://github.com/ninyawee/pythaiid/issues
+- GitHub Issues: https://github.com/ninyawee/pythaiidcard/issues
 
 ---
 
 **Last Updated**: 2025-10-23
-**Package**: pythaiid
+**Package**: pythaiidcard
 **Current Version**: 0.1.0

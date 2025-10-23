@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "pythaiid"
+name = "pythaiidcard"
 version = "0.1.0"
 description = "Python library for reading Thai national ID cards using smartcard readers"
 authors = [
@@ -34,13 +34,13 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ninyawee/pythaiid"
-Documentation = "https://github.com/ninyawee/pythaiid#readme"
-Repository = "https://github.com/ninyawee/pythaiid"
-"Issue Tracker" = "https://github.com/ninyawee/pythaiid/issues"
+Homepage = "https://github.com/ninyawee/pythaiidcard"
+Documentation = "https://github.com/ninyawee/pythaiidcard#readme"
+Repository = "https://github.com/ninyawee/pythaiidcard"
+"Issue Tracker" = "https://github.com/ninyawee/pythaiidcard/issues"
 
 [project.scripts]
-pythaiid = "pythaiid.cli:app"
+pythaiidcard = "pythaiidcard.cli:app"
 
 [dependency-groups]
 dev = [

@@ -18,7 +18,7 @@ from .reader import ThaiIDCardReader, read_thai_id_card
 from .utils import format_cid
 
 app = typer.Typer(
-    name="pythaiid",
+    name="pythaiidcard",
     help="Thai National ID Card Reader - Read data from Thai ID cards using smart card readers",
     add_completion=False,
 )
@@ -34,7 +34,7 @@ logging.basicConfig(
 def setup_logging(verbose: bool) -> None:
     """Setup logging based on verbosity."""
     if verbose:
-        logging.getLogger("pythaiid").setLevel(logging.DEBUG)
+        logging.getLogger("pythaiidcard").setLevel(logging.DEBUG)
 
 
 @app.command("list-readers")

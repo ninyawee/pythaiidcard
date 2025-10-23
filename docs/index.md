@@ -1,8 +1,8 @@
-# pythaiid
+# pythaiidcard
 
 **Python library for reading Thai national ID cards using smartcard readers**
 
-[![License](https://img.shields.io/badge/license-ISC-blue.svg)](https://github.com/ninyawee/pythaiid/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/license-ISC-blue.svg)](https://github.com/ninyawee/pythaiidcard/blob/master/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 
 ![Thai ID Card Reader Demo](<assets/debug interface.png>)
@@ -25,12 +25,12 @@
 # 1. Install system dependencies (Linux only)
 sudo apt-get install -y pcscd libpcsclite-dev python3-dev swig
 
-# 2. Install pythaiid
-pip install pythaiid
+# 2. Install pythaiidcard
+pip install pythaiidcard
 
 # 3. Use in your Python code
 python
->>> from pythaiid import ThaiIDCardReader
+>>> from pythaiidcard import ThaiIDCardReader
 >>> reader = ThaiIDCardReader()
 >>> with reader.card_session():
 ...     card = reader.read_card()
@@ -59,9 +59,11 @@ The library extracts the following information from Thai National ID cards:
 
 ### Hardware
 - **Smartcard Reader**: PC/SC compatible smartcard reader
-  - Recommended: [USB-C Smart Card Reader](https://s.shopee.co.th/9zpLTwW3c8) (tested by author)
+  - Recommended: [USB-C Smart Card Reader](https://s.shopee.co.th/9zpLTwW3c8)* (tested by author)
   - Or any other PC/SC compatible reader
 - **Thai National ID card**: Modern card with chip (issued 2010+)
+
+<small>* Affiliate link</small>
 
 ### Software
 - Python 3.13 or higher
@@ -85,7 +87,7 @@ This project is inspired by and based on:
 
 ## License
 
-This project is licensed under the ISC License. See the [LICENSE](https://github.com/ninyawee/pythaiid/blob/master/LICENSE) file for details.
+This project is licensed under the ISC License. See the [LICENSE](https://github.com/ninyawee/pythaiidcard/blob/master/LICENSE) file for details.
 
 ## Next Steps
 

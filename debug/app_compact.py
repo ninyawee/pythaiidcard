@@ -8,9 +8,9 @@ from typing import Optional
 import streamlit as st
 from PIL import Image
 
-from pythaiid.reader import ThaiIDCardReader
-from pythaiid.models import ThaiIDCard, CardReaderInfo
-from pythaiid.exceptions import (
+from pythaiidcard.reader import ThaiIDCardReader
+from pythaiidcard.models import ThaiIDCard, CardReaderInfo
+from pythaiidcard.exceptions import (
     NoReaderFoundError,
     NoCardDetectedError,
     CardConnectionError,

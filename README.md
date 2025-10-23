@@ -1,4 +1,4 @@
-# pythaiid
+# pythaiidcard
 
 Python library for reading Thai national ID cards using smartcard readers.
 
@@ -150,7 +150,7 @@ See [debug/README.md](debug/README.md) for detailed documentation.
 ### Python Library
 
 ```python
-from pythaiid import ThaiIDCardReader
+from pythaiidcard import ThaiIDCardReader
 
 # Basic usage - auto-connect and read card
 reader = ThaiIDCardReader()
@@ -168,7 +168,7 @@ with reader.card_session():
         card.save_photo()  # Saves as {cid}.jpg
 
 # Advanced usage - manual control
-from pythaiid.reader import ThaiIDCardReader
+from pythaiidcard.reader import ThaiIDCardReader
 
 # List available readers
 readers = ThaiIDCardReader.list_readers()
@@ -260,7 +260,7 @@ To install missing dependencies, run:
 
 **To skip the dependency check** (if you know dependencies are installed via other means):
 ```python
-from pythaiid import ThaiIDCardReader
+from pythaiidcard import ThaiIDCardReader
 
 reader = ThaiIDCardReader(skip_system_check=True)
 ```
@@ -283,8 +283,8 @@ Then log out and log back in.
 ## Project Structure
 
 ```
-pythaiid/
-├── pythaiid/              # Main library package
+pythaiidcard/
+├── pythaiidcard/              # Main library package
 │   ├── __init__.py       # Package initialization
 │   ├── reader.py         # ThaiIDCardReader implementation
 │   ├── models.py         # Pydantic data models

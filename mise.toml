@@ -1,7 +1,11 @@
 [tools]
-python = "3.13"
+python = "3.14"
 uv = "latest"
 
+[env]
+'_'.file = ".env"
+
+# System setup tasks
 [tasks.install-deps]
 description = "Install system dependencies for smartcard reader"
 run = """
@@ -12,10 +16,114 @@ sudo apt-get install -y pcscd libpcsclite-dev python3-dev swig
 [tasks.setup]
 description = "Setup the project with uv"
 depends = ["install-deps"]
+run = "uv sync --all-groups"
+
+# Development tasks
+[tasks.install]
+description = "Install dependencies"
+run = "uv sync"
+
+[tasks.dev]
+description = "Install all dependencies including dev and docs"
+run = "uv sync --all-groups"
+
+# Documentation tasks
+[tasks.docs-serve]
+description = "Serve documentation locally"
+run = "uv run mkdocs serve"
+
+[tasks.docs-build]
+description = "Build documentation"
+run = "uv run mkdocs build --strict"
+
+[tasks.docs-deploy]
+description = "Deploy documentation to GitHub Pages"
+run = "uv run mkdocs gh-deploy"
+
+# Code quality tasks
+[tasks.lint]
+description = "Run linting checks"
+run = "uv run ruff check ."
+
+[tasks.format]
+description = "Format code with ruff"
+run = "uv run ruff format ."
+
+[tasks.format-check]
+description = "Check code formatting"
+run = "uv run ruff format --check ."
+
+# Build and publish tasks
+[tasks.clean]
+description = "Clean build artifacts and cache"
 run = """
-uv add pyscard pillow
+rm -rf dist/ build/ *.egg-info
+rm -rf .pytest_cache/ .ruff_cache/ .mypy_cache/
+rm -rf site/
+find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+find . -type f -name "*.pyc" -delete
+find . -type f -name "*.pyo" -delete
 """
 
+[tasks.build]
+description = "Build distribution packages"
+run = """
+echo "Cleaning previous builds..."
+rm -rf dist/ build/ *.egg-info
+echo "Building package..."
+uv build
+echo ""
+echo "Built packages:"
+ls -lh dist/
+"""
+
+[tasks.verify]
+description = "Run all verification checks (lint, format, docs, build)"
+run = """
+echo "Running linting..."
+uv run ruff check .
+echo ""
+echo "Checking formatting..."
+uv run ruff format --check .
+echo ""
+echo "Building documentation..."
+uv run mkdocs build --strict
+echo ""
+echo "Building package..."
+uv build
+echo ""
+echo "✅ All checks passed!"
+"""
+
+[tasks.publish-test]
+description = "Publish to TestPyPI (requires UV_PUBLISH_TOKEN env var)"
+run = """
+if [ -z "$UV_PUBLISH_TOKEN" ]; then
+    echo "Error: UV_PUBLISH_TOKEN not set"
+    echo "Usage: UV_PUBLISH_TOKEN=pypi-... mise run publish-test"
+    exit 1
+fi
+uv publish --publish-url https://test.pypi.org/legacy/
+"""
+
+[tasks.publish]
+description = "Publish to PyPI (requires UV_PUBLISH_TOKEN env var)"
+run = """
+if [ -z "$UV_PUBLISH_TOKEN" ]; then
+    echo "Error: UV_PUBLISH_TOKEN not set"
+    echo "Usage: UV_PUBLISH_TOKEN=pypi-... mise run publish"
+    exit 1
+fi
+echo "⚠️  Publishing to production PyPI..."
+read -p "Are you sure? (yes/no): " confirm
+if [ "$confirm" != "yes" ]; then
+    echo "Aborted."
+    exit 1
+fi
+uv publish
+"""
+
+# Legacy tasks
 [tasks.run]
-description = "Run pythaiid - Thai ID card reader"
-run = "uv run python thai-idcard.py"
+description = "Run pythaiidcard CLI - Thai ID card reader"
+run = "uv run pythaiidcard read"

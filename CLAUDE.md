@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`pythaiid` is a Python library for reading Thai National ID cards using PC/SC smartcard readers. It extracts personal information, photos, and validates data from Thai citizen ID cards.
+`pythaiidcard` is a Python library for reading Thai National ID cards using PC/SC smartcard readers. It extracts personal information, photos, and validates data from Thai citizen ID cards.
 
 ## Development Commands
 
@@ -55,7 +55,7 @@ Thai ID cards use ISO 7816-4 APDU commands over PC/SC. The critical flow:
 
 ### Core Components
 
-**`pythaiid/reader.py`** - Main reader implementation
+**`pythaiidcard/reader.py`** - Main reader implementation
 - `ThaiIDCardReader`: Manages connection, reading operations
 - Key methods:
   - `list_readers()`: Static method to enumerate available readers
@@ -63,26 +63,26 @@ Thai ID cards use ISO 7816-4 APDU commands over PC/SC. The critical flow:
   - `read_card()`: Reads all data fields, optionally including photo (20-part JPEG)
   - `card_session()`: Context manager for automatic connect/disconnect
 
-**`pythaiid/constants.py`** - APDU commands and status codes
+**`pythaiidcard/constants.py`** - APDU commands and status codes
 - `CardCommands`: All APDU command definitions
 - `ResponseStatus`: Status code validation
   - **Important**: `is_success()` accepts both `90 00` AND `61 XX` responses
 - Photo reading: 20 separate 255-byte chunks (`CMD_PHOTO1` through `CMD_PHOTO20`)
 
-**`pythaiid/models.py`** - Pydantic data models
+**`pythaiidcard/models.py`** - Pydantic data models
 - `ThaiIDCard`: Main card data model with validation
   - CID checksum validation (mod-11 algorithm)
   - Buddhist Era to Gregorian date conversion (subtract 543 years)
   - Computed fields: `age`, `gender_text`, `is_expired`, `days_until_expiry`
 - `CardReaderInfo`: Reader enumeration data
 
-**`pythaiid/system_check.py`** - Dependency validation
+**`pythaiidcard/system_check.py`** - Dependency validation
 - **Smart checking**: First attempts to import `smartcard.System` (pyscard)
 - If pyscard imports successfully, skip detailed system checks (dependencies are satisfied)
 - Only falls back to apt package checks if pyscard import fails
 - This prevents false positives when using uv-managed Python environments
 
-**`pythaiid/exceptions.py`** - Exception hierarchy
+**`pythaiidcard/exceptions.py`** - Exception hierarchy
 - Base: `ThaiIDCardException`
 - Common: `NoReaderFoundError`, `NoCardDetectedError`, `CardConnectionError`
 
@@ -178,7 +178,7 @@ When debugging card reading issues:
 ## File Organization
 
 ```
-pythaiid/           # Core library
+pythaiidcard/           # Core library
 ├── reader.py       # Main ThaiIDCardReader class
 ├── models.py       # Pydantic models (ThaiIDCard, CardReaderInfo)
 ├── constants.py    # APDU commands, response codes

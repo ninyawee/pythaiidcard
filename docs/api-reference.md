@@ -4,7 +4,7 @@
 
 ### ThaiIDCardReader
 
-::: pythaiid.reader.ThaiIDCardReader
+::: pythaiidcard.reader.ThaiIDCardReader
     options:
       show_source: true
       members:
@@ -19,7 +19,7 @@
 
 ### ThaiIDCard
 
-::: pythaiid.models.ThaiIDCard
+::: pythaiidcard.models.ThaiIDCard
     options:
       show_source: true
       members:
@@ -45,7 +45,7 @@
 
 ### CardReaderInfo
 
-::: pythaiid.models.CardReaderInfo
+::: pythaiidcard.models.CardReaderInfo
     options:
       show_source: true
 
@@ -55,7 +55,7 @@
 
 ### read_thai_id_card
 
-::: pythaiid.reader.read_thai_id_card
+::: pythaiidcard.reader.read_thai_id_card
     options:
       show_source: true
 
@@ -65,11 +65,11 @@
 
 ### CID Utilities
 
-::: pythaiid.utils.validate_cid
+::: pythaiidcard.utils.validate_cid
     options:
       show_source: true
 
-::: pythaiid.utils.format_cid
+::: pythaiidcard.utils.format_cid
     options:
       show_source: true
 
@@ -77,15 +77,15 @@
 
 ### Date Utilities
 
-::: pythaiid.utils.parse_buddhist_date
+::: pythaiidcard.utils.parse_buddhist_date
     options:
       show_source: true
 
-::: pythaiid.utils.calculate_age
+::: pythaiidcard.utils.calculate_age
     options:
       show_source: true
 
-::: pythaiid.utils.is_card_expired
+::: pythaiidcard.utils.is_card_expired
     options:
       show_source: true
 
@@ -93,11 +93,11 @@
 
 ### Text Utilities
 
-::: pythaiid.utils.thai_to_unicode
+::: pythaiidcard.utils.thai_to_unicode
     options:
       show_source: true
 
-::: pythaiid.utils.format_address
+::: pythaiidcard.utils.format_address
     options:
       show_source: true
 
@@ -107,7 +107,7 @@
 
 ### ThaiIDCardException
 
-::: pythaiid.exceptions.ThaiIDCardException
+::: pythaiidcard.exceptions.ThaiIDCardException
     options:
       show_source: true
 
@@ -115,7 +115,7 @@
 
 ### SystemDependencyError
 
-::: pythaiid.exceptions.SystemDependencyError
+::: pythaiidcard.exceptions.SystemDependencyError
     options:
       show_source: true
 
@@ -123,7 +123,7 @@
 
 ### NoReaderFoundError
 
-::: pythaiid.exceptions.NoReaderFoundError
+::: pythaiidcard.exceptions.NoReaderFoundError
     options:
       show_source: true
 
@@ -131,7 +131,7 @@
 
 ### NoCardDetectedError
 
-::: pythaiid.exceptions.NoCardDetectedError
+::: pythaiidcard.exceptions.NoCardDetectedError
     options:
       show_source: true
 
@@ -139,7 +139,7 @@
 
 ### CardConnectionError
 
-::: pythaiid.exceptions.CardConnectionError
+::: pythaiidcard.exceptions.CardConnectionError
     options:
       show_source: true
 
@@ -147,7 +147,7 @@
 
 ### InvalidCardError
 
-::: pythaiid.exceptions.InvalidCardError
+::: pythaiidcard.exceptions.InvalidCardError
     options:
       show_source: true
 
@@ -155,7 +155,7 @@
 
 ### CommandError
 
-::: pythaiid.exceptions.CommandError
+::: pythaiidcard.exceptions.CommandError
     options:
       show_source: true
 
@@ -163,7 +163,7 @@
 
 ### DataReadError
 
-::: pythaiid.exceptions.DataReadError
+::: pythaiidcard.exceptions.DataReadError
     options:
       show_source: true
 
@@ -171,7 +171,7 @@
 
 ### InvalidReaderIndexError
 
-::: pythaiid.exceptions.InvalidReaderIndexError
+::: pythaiidcard.exceptions.InvalidReaderIndexError
     options:
       show_source: true
 
@@ -179,7 +179,7 @@
 
 ### CardTimeoutError
 
-::: pythaiid.exceptions.CardTimeoutError
+::: pythaiidcard.exceptions.CardTimeoutError
     options:
       show_source: true
 
@@ -189,7 +189,7 @@
 
 ### check_system_dependencies
 
-::: pythaiid.system_check.check_system_dependencies
+::: pythaiidcard.system_check.check_system_dependencies
     options:
       show_source: true
 
@@ -197,7 +197,7 @@
 
 ### check_and_raise_if_missing
 
-::: pythaiid.system_check.check_and_raise_if_missing
+::: pythaiidcard.system_check.check_and_raise_if_missing
     options:
       show_source: true
 
@@ -207,7 +207,7 @@
 
 ### APDUCommand
 
-::: pythaiid.constants.APDUCommand
+::: pythaiidcard.constants.APDUCommand
     options:
       show_source: true
 
@@ -215,7 +215,7 @@
 
 ### CardCommands
 
-::: pythaiid.constants.CardCommands
+::: pythaiidcard.constants.CardCommands
     options:
       show_source: true
 
@@ -223,6 +223,6 @@
 
 ### ResponseStatus
 
-::: pythaiid.constants.ResponseStatus
+::: pythaiidcard.constants.ResponseStatus
     options:
       show_source: true

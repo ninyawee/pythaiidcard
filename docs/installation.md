@@ -2,7 +2,7 @@
 
 ## System Dependencies
 
-pythaiid requires several system-level dependencies for PC/SC smartcard communication.
+pythaiidcard requires several system-level dependencies for PC/SC smartcard communication.
 
 ### Linux (Debian/Ubuntu)
 
@@ -55,29 +55,29 @@ sudo systemctl enable pcscd  # Enable on boot
 ### Using pip (Recommended)
 
 ```bash
-pip install pythaiid
+pip install pythaiidcard
 ```
 
 ### Using uv (Fast)
 
 ```bash
-uv add pythaiid
+uv add pythaiidcard
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/ninyawee/pythaiid.git
-cd pythaiid
+git clone https://github.com/ninyawee/pythaiidcard.git
+cd pythaiidcard
 uv sync --group dev
 ```
 
 ## Dependency Check
 
-pythaiid automatically checks for required system dependencies on Linux systems. If dependencies are missing, you'll see a helpful error message:
+pythaiidcard automatically checks for required system dependencies on Linux systems. If dependencies are missing, you'll see a helpful error message:
 
 ```python
-from pythaiid import ThaiIDCardReader
+from pythaiidcard import ThaiIDCardReader
 
 reader = ThaiIDCardReader()
 # SystemDependencyError: Missing required system dependencies:
@@ -109,13 +109,16 @@ The library works with any PC/SC compatible smartcard reader. The author uses an
 ![USB-C Card Reader](assets/usb c card reader.png)
 
 - **Product**: USB-C Smart Card Reader
-- **Link**: [Available on Shopee](https://s.shopee.co.th/9zpLTwW3c8)
+- **Link**: [Available on Shopee](https://s.shopee.co.th/9zpLTwW3c8) (affiliate link)
 - **Features**:
   - USB-C connection
   - Compact and portable
   - Works with Thai National ID cards
   - PC/SC compatible
   - Plug and play on Linux
+
+!!! info "Affiliate Disclosure"
+    The Shopee link above is an affiliate link. The author may earn a commission from purchases made through this link at no additional cost to you.
 
 !!! tip "Alternative Readers"
     Any PC/SC compatible smartcard reader will work, including:
@@ -160,7 +163,7 @@ Then log out and log back in for the changes to take effect.
 Test that everything is working:
 
 ```python
-from pythaiid import ThaiIDCardReader
+from pythaiidcard import ThaiIDCardReader
 
 # List available readers
 readers = ThaiIDCardReader.list_readers()
@@ -175,8 +178,8 @@ For development with all optional dependencies:
 
 ```bash
 # Clone the repository
-git clone https://github.com/ninyawee/pythaiid.git
-cd pythaiid
+git clone https://github.com/ninyawee/pythaiidcard.git
+cd pythaiidcard
 
 # Install with development dependencies
 uv sync --group dev

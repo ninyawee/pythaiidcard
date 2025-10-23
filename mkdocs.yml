@@ -1,8 +1,8 @@
-site_name: pythaiid
+site_name: pythaiidcard
 site_description: Python library for reading Thai national ID cards using smartcard readers
-site_url: https://github.com/ninyawee/pythaiid
-repo_url: https://github.com/ninyawee/pythaiid
-repo_name: ninyawee/pythaiid
+site_url: https://github.com/ninyawee/pythaiidcard
+repo_url: https://github.com/ninyawee/pythaiidcard
+repo_name: ninyawee/pythaiidcard
 
 theme:
   name: material
@@ -77,4 +77,4 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/ninyawee/pythaiid
+      link: https://github.com/ninyawee/pythaiidcard

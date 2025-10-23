@@ -7,7 +7,7 @@
 The simplest way to read a Thai ID card:
 
 ```python
-from pythaiid import read_thai_id_card
+from pythaiidcard import read_thai_id_card
 
 # Auto-connect and read the card
 card = read_thai_id_card()
@@ -22,7 +22,7 @@ print(f"Age: {card.age}")
 For better resource management:
 
 ```python
-from pythaiid import ThaiIDCardReader
+from pythaiidcard import ThaiIDCardReader
 
 reader = ThaiIDCardReader()
 
@@ -45,7 +45,7 @@ with reader.card_session():
 ### Manual Connection Control
 
 ```python
-from pythaiid import ThaiIDCardReader
+from pythaiidcard import ThaiIDCardReader
 
 # List available readers
 readers = ThaiIDCardReader.list_readers()
@@ -167,7 +167,7 @@ data = card.model_dump(include={"cid", "english_fullname", "date_of_birth"})
 ### CID Validation
 
 ```python
-from pythaiid import validate_cid, format_cid
+from pythaiidcard import validate_cid, format_cid
 
 # Validate CID checksum
 cid = "1234567890123"
@@ -184,7 +184,7 @@ print(formatted)  # "1-2345-67890-12-3"
 ### Date Utilities
 
 ```python
-from pythaiid import parse_buddhist_date, calculate_age, is_card_expired
+from pythaiidcard import parse_buddhist_date, calculate_age, is_card_expired
 from datetime import datetime
 
 # Parse Buddhist Era date
@@ -203,7 +203,7 @@ print(f"Expired: {expired}")
 ### Thai Text Conversion
 
 ```python
-from pythaiid import thai_to_unicode
+from pythaiidcard import thai_to_unicode
 
 # Convert Thai text from card encoding
 thai_bytes = b"\xe0\xb8\x99\xe0\xb8\xb2\xe0\xb8\xa2..."
@@ -216,7 +216,7 @@ print(thai_text)
 ### List Readers
 
 ```bash
-pythaiid list-readers
+pythaiidcard list-readers
 ```
 
 Output:
@@ -232,22 +232,22 @@ Output:
 
 ```bash
 # Read and display card data
-pythaiid read
+pythaiidcard read
 
 # Read without photo
-pythaiid read --no-photo
+pythaiidcard read --no-photo
 
 # Save photo to specific path
-pythaiid read --save-photo /path/to/photo.jpg
+pythaiidcard read --save-photo /path/to/photo.jpg
 
 # Use specific reader
-pythaiid read --reader 0
+pythaiidcard read --reader 0
 
 # Output as JSON
-pythaiid read --format json
+pythaiidcard read --format json
 
 # Verbose output
-pythaiid read --verbose
+pythaiidcard read --verbose
 ```
 
 ### Watch for Cards
@@ -255,7 +255,7 @@ pythaiid read --verbose
 Continuously monitor for card insertions:
 
 ```bash
-pythaiid watch --interval 2
+pythaiidcard watch --interval 2
 ```
 
 Output:
@@ -273,7 +273,7 @@ Card removed
 ### Validate CID
 
 ```bash
-pythaiid validate 1234567890123
+pythaiidcard validate 1234567890123
 ```
 
 ## Web Interface (Streamlit)
@@ -299,14 +299,14 @@ Open http://localhost:8501 in your browser.
 - 💾 Export data as JSON, CSV, or photo
 - 🐛 Real-time debug logging (full interface)
 
-See [debug/README.md](https://github.com/ninyawee/pythaiid/blob/master/debug/README.md) for detailed documentation.
+See [debug/README.md](https://github.com/ninyawee/pythaiidcard/blob/master/debug/README.md) for detailed documentation.
 
 ## Error Handling
 
 ### Catching Exceptions
 
 ```python
-from pythaiid import (
+from pythaiidcard import (
     ThaiIDCardReader,
     NoReaderFoundError,
     NoCardDetectedError,
@@ -345,7 +345,7 @@ except Exception as e:
 
 ```python
 import time
-from pythaiid import ThaiIDCardReader, NoCardDetectedError
+from pythaiidcard import ThaiIDCardReader, NoCardDetectedError
 
 def read_with_retry(max_attempts=3, delay=1):
     reader = ThaiIDCardReader()

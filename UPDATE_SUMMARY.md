@@ -99,8 +99,8 @@
 1. `README.md` - Comprehensive updates
 2. `debug/README.md` - Interface comparison
 3. `debug/app.py` - Warning fixes
-4. `pythaiid/constants.py` - Response handling fix
-5. `pythaiid/system_check.py` - Smart dependency check
+4. `pythaiidcard/constants.py` - Response handling fix
+5. `pythaiidcard/system_check.py` - Smart dependency check
 6. `pyproject.toml` - Build system, Python version
 7. `mise.toml` - Python 3.13
 
@@ -152,7 +152,7 @@ cd debug
 
 Or explore the full API:
 ```python
-from pythaiid import ThaiIDCardReader
+from pythaiidcard import ThaiIDCardReader
 
 reader = ThaiIDCardReader()
 with reader.card_session():

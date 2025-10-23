@@ -339,7 +339,7 @@ else:
 
 **Debugging:**
 ```python
-from pythaiid import validate_cid, format_cid
+from pythaiidcard import validate_cid, format_cid
 
 cid = "1234567890123"
 print(f"CID: {format_cid(cid)}")
@@ -367,7 +367,7 @@ If you're still experiencing issues:
 
 2. **Enable verbose mode (CLI):**
    ```bash
-   pythaiid read --verbose
+   pythaiidcard read --verbose
    ```
 
 3. **Use the debug interface:**
@@ -377,7 +377,7 @@ If you're still experiencing issues:
    See real-time logs and connection status.
 
 4. **Search existing issues:**
-   - [GitHub Issues](https://github.com/ninyawee/pythaiid/issues)
+   - [GitHub Issues](https://github.com/ninyawee/pythaiidcard/issues)
 
 5. **Create a new issue:**
    - Include Python version, OS, reader model

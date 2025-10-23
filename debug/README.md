@@ -121,13 +121,13 @@ The interface will open in your default browser at `http://localhost:8501`
 
 The debug interface uses:
 - **Streamlit**: Web UI framework
-- **pythaiid**: Core library for card reading
+- **pythaiidcard**: Core library for card reading
 - **Pydantic**: Data validation and models
 - **PIL/Pillow**: Image handling
 
 ## Features Demonstrated
 
-This debug interface showcases all features of the `pythaiid` library:
+This debug interface showcases all features of the `pythaiidcard` library:
 
 - Reader scanning and selection
 - Connection management
