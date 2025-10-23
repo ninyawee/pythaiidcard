@@ -2,7 +2,51 @@
 
 Python library for reading Thai national ID cards using smartcard readers.
 
-![Screen Shot 2564-10-12 at 14 24 19](https://user-images.githubusercontent.com/13503510/136910757-c00cc26e-3fe7-42dd-b277-684bc9518d11.png)
+![Thai ID Card Reader Demo](<docs/assets/debug interface.png>)
+
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Command Line](#command-line)
+  - [Web Interface](#web-interface-streamlit)
+  - [Python Library](#python-library)
+- [Data Fields](#data-fields)
+- [Dependencies](#dependencies)
+- [Troubleshooting](#troubleshooting)
+- [Project Structure](#project-structure)
+- [Credits](#credits)
+- [License](#license)
+
+## Features
+
+- ✅ **Full Card Data Extraction**: Read all information from Thai ID cards
+- 📸 **Photo Support**: Extract and save card photos (JPEG format)
+- 🔒 **Data Validation**: Automatic CID checksum validation and date parsing
+- 📅 **Date Conversion**: Buddhist Era to Gregorian calendar conversion
+- 🎨 **Modern Web UI**: Streamlit-based debug interfaces
+- 🐍 **Type-Safe**: Full type hints and Pydantic models
+- 🔍 **Error Handling**: Comprehensive exception handling and system checks
+- 📦 **Zero Config**: Auto-detects readers and connects to cards
+- 🚀 **Fast**: Efficient APDU command implementation
+
+## Quick Start
+
+```bash
+# 1. Install system dependencies
+sudo apt-get install -y pcscd libpcsclite-dev python3-dev swig
+
+# 2. Install Python dependencies
+uv sync --group dev
+
+# 3. Run the web interface
+uv run streamlit run debug/app_compact.py
+```
+
+Then open http://localhost:8501 in your browser, insert your Thai ID card, and click "Scan Readers" → "Connect" → "Read Card".
 
 ## Credits
 
@@ -54,6 +98,8 @@ mise run setup
 
 ## Usage
 
+### Command Line
+
 Connect your smartcard reader and insert a Thai ID card, then run:
 
 ```bash
@@ -79,6 +125,90 @@ The script will:
   - Address
   - Photo (saved as `{CID}.jpg`)
 
+### Web Interface (Streamlit)
+
+For a modern web-based interface with visual feedback:
+
+```bash
+# Compact modern interface (recommended)
+uv run streamlit run debug/app_compact.py
+
+# Full debug interface with logs
+uv run streamlit run debug/app.py
+```
+
+Features:
+- 🔍 Visual reader detection and selection
+- 🔌 Connection status monitoring
+- 📖 Interactive card reading with progress bars
+- 📸 Photo preview and download
+- 💾 Export data as JSON, CSV, or photo
+- 🐛 Real-time debug logging (full interface)
+
+See [debug/README.md](debug/README.md) for detailed documentation.
+
+### Python Library
+
+```python
+from pythaiid import ThaiIDCardReader
+
+# Basic usage - auto-connect and read card
+reader = ThaiIDCardReader()
+with reader.card_session():
+    card = reader.read_card(include_photo=True)
+
+    print(f"Name: {card.english_fullname}")
+    print(f"CID: {card.cid}")
+    print(f"Age: {card.age}")
+    print(f"Expires: {card.expire_date}")
+    print(f"Valid: {not card.is_expired}")
+
+    # Save photo
+    if card.photo:
+        card.save_photo()  # Saves as {cid}.jpg
+
+# Advanced usage - manual control
+from pythaiid.reader import ThaiIDCardReader
+
+# List available readers
+readers = ThaiIDCardReader.list_readers()
+for reader_info in readers:
+    print(f"Reader {reader_info.index}: {reader_info.name}")
+    print(f"  ATR: {reader_info.atr}")
+    print(f"  Connected: {reader_info.connected}")
+
+# Connect to specific reader
+reader = ThaiIDCardReader(reader_index=0)
+reader.connect()
+
+# Read without photo for faster operation
+card = reader.read_card(include_photo=False)
+
+# Read with progress callback
+def on_photo_progress(current, total):
+    print(f"Reading photo: {current}/{total}")
+
+card = reader.read_card(
+    include_photo=True,
+    photo_progress_callback=on_photo_progress
+)
+
+reader.disconnect()
+
+# Access card data
+print(f"Thai Name: {card.thai_fullname}")
+print(f"English Name: {card.english_fullname}")
+print(f"Gender: {card.gender_text}")  # "Male" or "Female"
+print(f"Address: {card.address}")
+print(f"Issue Date: {card.issue_date}")
+print(f"Days until expiry: {card.days_until_expiry}")
+
+# Export as JSON
+import json
+card_json = card.model_dump_json(indent=2)
+print(card_json)
+```
+
 ## Data Fields
 
 The following information is extracted from the card:
@@ -98,10 +228,42 @@ The following information is extracted from the card:
 
 ## Dependencies
 
+### Python Packages
+
 - **pyscard** (>=2.3.0) - Python smartcard library for PC/SC interface
 - **Pillow** (>=11.3.0) - Python imaging library for photo handling
+- **pydantic** (>=2.0) - Data validation and settings management
+- **python-dateutil** (>=2.8.2) - Date parsing utilities
+
+### Development Dependencies
+
+- **streamlit** (>=1.28.0) - Web interface framework (optional)
+- **ruff** (>=0.8.4) - Linting and formatting
 
 ## Troubleshooting
+
+### SystemDependencyError: Missing required system dependencies
+
+The library will automatically check for required system dependencies on Linux systems with apt package manager. If dependencies are missing, you'll see a helpful error message with installation instructions.
+
+Example error:
+```
+SystemDependencyError: Missing required system dependencies:
+
+  ✗ PC/SC Smart Card Daemon (pcscd)
+  ✗ PC/SC Lite development library (libpcsclite-dev)
+
+To install missing dependencies, run:
+
+  sudo apt-get update && sudo apt-get install -y pcscd libpcsclite-dev python3-dev swig
+```
+
+**To skip the dependency check** (if you know dependencies are installed via other means):
+```python
+from pythaiid import ThaiIDCardReader
+
+reader = ThaiIDCardReader(skip_system_check=True)
+```
 
 ### "No such file or directory: winscard.h"
 Install the system dependencies listed above, particularly `libpcsclite-dev`.
@@ -117,6 +279,36 @@ Add your user to the `scard` group:
 sudo usermod -a -G scard $USER
 ```
 Then log out and log back in.
+
+## Project Structure
+
+```
+pythaiid/
+├── pythaiid/              # Main library package
+│   ├── __init__.py       # Package initialization
+│   ├── reader.py         # ThaiIDCardReader implementation
+│   ├── models.py         # Pydantic data models
+│   ├── constants.py      # APDU commands and response codes
+│   ├── exceptions.py     # Custom exceptions
+│   ├── utils.py          # Utility functions
+│   └── system_check.py   # System dependency checking
+├── debug/                # Debug interfaces
+│   ├── app.py           # Full debug interface (multi-tab)
+│   ├── app_compact.py   # Modern compact interface
+│   ├── README.md        # Debug interface documentation
+│   └── RUN_COMPACT.sh   # Quick launch script
+├── thai-idcard.py       # Legacy CLI script
+├── pyproject.toml       # Project configuration
+└── README.md            # This file
+```
+
+### Key Components
+
+- **ThaiIDCardReader**: Main class for reading Thai ID cards
+- **ThaiIDCard**: Pydantic model with validated card data
+- **CardReaderInfo**: Information about available card readers
+- **System Check**: Automatic validation of system dependencies
+- **Debug Interfaces**: Streamlit-based web UIs for testing and debugging
 
 ## License
 

@@ -14,6 +14,7 @@ from .exceptions import (
     InvalidReaderIndexError,
     NoCardDetectedError,
     NoReaderFoundError,
+    SystemDependencyError,
     ThaiIDCardException,
 )
 from .models import CardReaderInfo, ThaiIDCard
@@ -56,4 +57,5 @@ __all__ = [
     "DataReadError",
     "InvalidReaderIndexError",
     "CardTimeoutError",
+    "SystemDependencyError",
 ]

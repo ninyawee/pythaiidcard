@@ -17,8 +17,10 @@ from .exceptions import (
     InvalidReaderIndexError,
     NoCardDetectedError,
     NoReaderFoundError,
+    SystemDependencyError,
 )
 from .models import CardReaderInfo, ThaiIDCard
+from .system_check import check_and_raise_if_missing
 from .utils import thai_to_unicode
 
 logger = logging.getLogger(__name__)
@@ -27,13 +29,21 @@ logger = logging.getLogger(__name__)
 class ThaiIDCardReader:
     """Reader for Thai National ID Cards."""
     
-    def __init__(self, reader_index: Optional[int] = None, retry_count: int = 3):
+    def __init__(self, reader_index: Optional[int] = None, retry_count: int = 3,
+                 skip_system_check: bool = False):
         """Initialize the Thai ID Card reader.
-        
+
         Args:
             reader_index: Index of the reader to use (None for auto-select)
             retry_count: Number of retries for failed operations
+            skip_system_check: Skip system dependency check (default: False)
+
+        Raises:
+            SystemDependencyError: If required system dependencies are missing
         """
+        # Check system dependencies on Linux apt-based systems
+        check_and_raise_if_missing(skip_check=skip_system_check)
+
         self.reader_index = reader_index
         self.retry_count = retry_count
         self.connection: Optional[CardConnection] = None
@@ -41,15 +51,22 @@ class ThaiIDCardReader:
         self._request_command: Optional[List[int]] = None
     
     @staticmethod
-    def list_readers() -> List[CardReaderInfo]:
+    def list_readers(skip_system_check: bool = False) -> List[CardReaderInfo]:
         """List all available smart card readers.
-        
+
+        Args:
+            skip_system_check: Skip system dependency check (default: False)
+
         Returns:
             List of CardReaderInfo objects
-            
+
         Raises:
             NoReaderFoundError: If no readers are found
+            SystemDependencyError: If required system dependencies are missing
         """
+        # Check system dependencies on Linux apt-based systems
+        check_and_raise_if_missing(skip_check=skip_system_check)
+
         reader_list = readers()
         
         if not reader_list:
@@ -241,19 +258,21 @@ class ThaiIDCardReader:
         
         return photo_data
     
-    def read_card(self, include_photo: bool = True, 
+    def read_card(self, include_photo: bool = True,
                   photo_progress_callback: Optional[callable] = None) -> ThaiIDCard:
         """Read all data from Thai ID card.
-        
+
         Args:
             include_photo: Whether to read the photo
             photo_progress_callback: Optional callback for photo reading progress
-            
+
         Returns:
             ThaiIDCard object with all card data
-            
+
         Raises:
-            Various exceptions for connection and reading errors
+            CardConnectionError: If not connected to card
+            DataReadError: If reading any field fails
+            CommandError: If APDU command fails
         """
         if not self.connection:
             raise CardConnectionError("Not connected to card. Call connect() first.")
@@ -312,16 +331,21 @@ class ThaiIDCardReader:
 def read_thai_id_card(reader_index: Optional[int] = None,
                      include_photo: bool = True) -> ThaiIDCard:
     """Convenience function to read a Thai ID card.
-    
+
     Args:
         reader_index: Reader index to use (None for auto-select)
         include_photo: Whether to include photo data
-        
+
     Returns:
         ThaiIDCard object with card data
-        
+
     Raises:
-        Various exceptions for errors
+        SystemDependencyError: If system dependencies are missing
+        NoReaderFoundError: If no readers are found
+        NoCardDetectedError: If no card is detected
+        CardConnectionError: If connection fails
+        InvalidCardError: If not a Thai ID card
+        DataReadError: If reading data fails
     """
     reader = ThaiIDCardReader(reader_index)
     

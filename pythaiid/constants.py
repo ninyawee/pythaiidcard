@@ -125,8 +125,13 @@ class ResponseStatus(Enum):
     
     @classmethod
     def is_success(cls, sw1: int, sw2: int) -> bool:
-        """Check if response indicates success."""
-        return sw1 == 0x90 and sw2 == 0x00
+        """Check if response indicates success.
+
+        Returns True for:
+        - 90 00: Success
+        - 61 XX: Success with more data available
+        """
+        return (sw1 == 0x90 and sw2 == 0x00) or sw1 == 0x61
     
     @classmethod
     def has_more_data(cls, sw1: int) -> bool:

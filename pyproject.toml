@@ -1,10 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "pythaiid"
 version = "0.1.0"
-description = "Python library for reading Thai national ID cards"
+description = "Python library for reading Thai national ID cards using smartcard readers"
+authors = [
+    {name = "Ninyawee", email = "ninyawee@users.noreply.github.com"}
+]
 license = {text = "ISC"}
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
+keywords = ["thai", "id-card", "smartcard", "pcsc", "national-id", "thailand", "citizen-id"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: ISC License (ISCL)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Hardware",
+    "Topic :: Security",
+]
 dependencies = [
     "pillow>=11.3.0",
     "pyscard>=2.3.0",
@@ -13,10 +33,21 @@ dependencies = [
     "python-dateutil>=2.8.2",
 ]
 
+[project.urls]
+Homepage = "https://github.com/ninyawee/pythaiid"
+Documentation = "https://github.com/ninyawee/pythaiid#readme"
+Repository = "https://github.com/ninyawee/pythaiid"
+"Issue Tracker" = "https://github.com/ninyawee/pythaiid/issues"
+
 [project.scripts]
 pythaiid = "pythaiid.cli:app"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "ruff>=0.8.4",
+    "streamlit>=1.28.0",
+]
+docs = [
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.24.0",
 ]

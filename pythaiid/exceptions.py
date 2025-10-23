@@ -72,7 +72,15 @@ class InvalidReaderIndexError(ThaiIDCardException):
 
 class CardTimeoutError(ThaiIDCardException):
     """Raised when card operation times out."""
-    
+
     def __init__(self, operation: str = "Card operation"):
         message = f"{operation} timed out. Please check the card is properly inserted."
         super().__init__(message)
+
+
+class SystemDependencyError(ThaiIDCardException):
+    """Raised when required system dependencies are missing."""
+
+    def __init__(self, message: str, missing_dependencies: list = None):
+        super().__init__(message)
+        self.missing_dependencies = missing_dependencies or []
