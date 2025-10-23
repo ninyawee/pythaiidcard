@@ -35,6 +35,11 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pcscd libpcsclite-dev swig
+
       - name: Install dependencies
         run: |
           uv sync --group docs
