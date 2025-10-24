@@ -31,14 +31,14 @@ class CardMonitorService:
 
     VERSION = "2.3.0"
 
-    def __init__(self, connection_manager: ConnectionManager, auto_read_on_insert: bool = False):
+    def __init__(self, connection_manager: ConnectionManager, auto_read_on_insert: bool = True):
         """
         Initialize card monitor service.
 
         Args:
             connection_manager: The connection manager for broadcasting events
-            auto_read_on_insert: Whether to automatically read card on insertion (default: False)
-                                 Set to False for readers with hardware limitations (e.g., Alcor Link AK9563)
+            auto_read_on_insert: Whether to automatically read card on insertion (default: True)
+                                 v2.3.0: Auto-read is now default with event-driven detection
         """
         self.connection_manager = connection_manager
         self.monitoring = False
@@ -46,7 +46,7 @@ class CardMonitorService:
         self.reader: Optional[ThaiIDCardReader] = None
         self.current_reader_name: Optional[str] = None
         self.card_present = False
-        self.auto_read_on_insert = auto_read_on_insert  # v2.2.0: On-demand mode by default
+        self.auto_read_on_insert = auto_read_on_insert  # v2.3.0: Auto-read mode by default
         # Caching fields (v2.1.0)
         self.cache_valid = False  # True if cached data is fresh for current insertion
         self.last_read_timestamp: Optional[datetime] = None  # When card was last read
@@ -209,7 +209,7 @@ class CardMonitorService:
                         self.reader.connect()
                         logger.info("Connected to card successfully")
 
-                        # Step 3: Auto-read if enabled (v2.3.0: on-demand by default)
+                        # Step 3: Auto-read if enabled (v2.3.0: auto-read by default)
                         if self.auto_read_on_insert:
                             logger.info("Auto-read enabled - reading card data...")
                             await self.read_and_broadcast(include_photo=True)

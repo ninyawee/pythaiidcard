@@ -8,7 +8,6 @@ class ThaiIDCardApp {
         this.ws = null;
         this.reconnectInterval = null;
         this.cardData = null;
-        this.autoCopyEnabled = true;
 
         // DOM elements
         this.elements = {
@@ -21,22 +20,21 @@ class ThaiIDCardApp {
             photoPlaceholder: document.getElementById('photo-placeholder'),
             logContent: document.getElementById('log-content'),
             toastContainer: document.getElementById('toast-container'),
-            autoCopyCheckbox: document.getElementById('auto-copy'),
             btnRead: document.getElementById('btn-read'),
             btnClear: document.getElementById('btn-clear'),
             btnClearLog: document.getElementById('btn-clear-log'),
         };
 
-        // Field mappings
+        // Field mappings (matched to API model fields)
         this.fields = {
             cid: 'cid',
-            'name-th': 'name_th',
-            'name-en': 'name_en',
+            'name-th': 'thai_fullname',
+            'name-en': 'english_fullname',
             dob: 'date_of_birth',
             gender: 'gender_text',
             address: 'address',
-            'issue-date': 'date_of_issue',
-            'expire-date': 'date_of_expiry',
+            'issue-date': 'issue_date',
+            'expire-date': 'expire_date',
         };
 
         this.init();
@@ -55,12 +53,6 @@ class ThaiIDCardApp {
      * Set up event listeners
      */
     setupEventListeners() {
-        // Auto-copy checkbox
-        this.elements.autoCopyCheckbox.addEventListener('change', (e) => {
-            this.autoCopyEnabled = e.target.checked;
-            this.log('info', `Auto-copy ${this.autoCopyEnabled ? 'enabled' : 'disabled'}`);
-        });
-
         // Read card button
         this.elements.btnRead.addEventListener('click', () => {
             this.requestCardRead();
@@ -180,17 +172,13 @@ class ThaiIDCardApp {
                     this.displayCardData(data, { cached: false, readAt });
                     this.showToast('success', 'Card read successfully!');
                 }
-
-                // Auto-copy CID if enabled
-                if (this.autoCopyEnabled && data.cid) {
-                    this.copyToClipboard(data.cid, false); // Don't show toast
-                    this.log('info', 'CID auto-copied to clipboard');
-                }
                 break;
 
             case 'card_removed':
                 this.log('warning', 'Card removed');
                 this.showToast('info', 'Card removed');
+                // Auto-clear card data when card is removed
+                this.clearCardData();
                 break;
 
             case 'reader_status':
