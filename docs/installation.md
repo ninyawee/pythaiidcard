@@ -212,7 +212,7 @@ uv run ruff check .
 uv run ruff format .
 
 # Run the web UI
-uv run streamlit run debug/app_compact.py
+uv run streamlit run debug/app.py
 ```
 
 ## Troubleshooting

@@ -281,10 +281,7 @@ pythaiidcard validate 1234567890123
 For a visual interface with real-time feedback:
 
 ```bash
-# Compact modern interface (recommended)
-uv run streamlit run debug/app_compact.py
-
-# Full debug interface with logs
+# Modern interface with real-time feedback
 uv run streamlit run debug/app.py
 ```
 

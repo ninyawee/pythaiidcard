@@ -3,14 +3,17 @@
 ## 2025-10-23 - Version 2.0
 
 ### Added
-- **New Compact Interface** (`app_compact.py`)
+- **Consolidated Interface** (`app.py`)
   - Modern dark gradient theme
-  - Single-page layout with all controls in header
-  - Inline control panel with reader selection
+  - Sidebar-based control layout for cleaner organization
+  - Expandable reader list with status indicators
   - Color-coded status badges
   - Sleek card-based design with shadows and animations
   - Production-ready appearance
-  - Quick launch script (`RUN_COMPACT.sh`)
+  - NHSO health insurance data reading
+  - Laser ID reading support
+  - Quick copy buttons for CID, names, and address
+  - Clean main display area with better readability
 
 ### Fixed
 - **System Check Issues**

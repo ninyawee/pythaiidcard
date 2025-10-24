@@ -27,17 +27,7 @@ uv sync --group dev
 
 ## Usage
 
-### Compact Modern Interface (Recommended)
-
 Modern, sleek single-page interface with compact layout:
-
-```bash
-uv run streamlit run debug/app_compact.py
-```
-
-### Full Debug Interface
-
-Detailed interface with debug logs and multiple tabs:
 
 ```bash
 uv run streamlit run debug/app.py
@@ -45,46 +35,42 @@ uv run streamlit run debug/app.py
 
 The interface will open in your default browser at `http://localhost:8501`
 
-### Interface Comparison
+### Interface Features
 
-| Feature | app_compact.py | app.py |
-|---------|----------------|--------|
-| **Design** | Modern, dark theme with gradient cards | Traditional Streamlit layout |
-| **Layout** | Single-page compact | Multi-tab with sidebar |
-| **Copy Buttons** | Quick copy for CID, names, address | No quick copy |
-| **Debug Logs** | Minimal (console only) | Full debug log viewer |
-| **Best For** | Quick card reading, production use | Debugging, development |
-| **Performance** | Faster, less overhead | More features, more overhead |
+- **Design**: Modern dark theme with gradient cards
+- **Layout**: Sidebar-based controls with clean main display area
+- **Copy Buttons**: Quick copy for CID, names, and address
+- **NHSO Data**: Read health insurance information
+- **Laser ID**: Read laser-engraved ID from card
+- **Performance**: Fast and responsive with minimal overhead
 
 ## Interface Overview
 
 ### Sidebar Controls
 
-1. **Scan Readers**: Detect all available card readers
-2. **Reader List**: Shows detected readers with connection status
-3. **Connect/Disconnect**: Manage reader connections
-4. **Read Card**: Extract data from the inserted card
-5. **Options**: Toggle photo reading on/off
-6. **Clear Logs**: Reset debug logs
+1. **🔍 Scan Readers**: Detect all available card readers
+2. **📡 Available Readers**: List of detected readers with expandable details
+   - Shows reader name, ATR, and card presence status
+   - Connect button for each reader
+3. **🔌 Connection Status**: Visual indicator of connection state
+   - Green badge when connected
+   - Disconnect button when active
+4. **📖 Read Card**: Extract data section
+   - Toggle photo inclusion
+   - Read card data button
+5. **📊 Additional Data**: Extra data operations
+   - Read NHSO health insurance data
+   - Read laser-engraved ID
 
-### Main Tabs
+### Main Display Area
 
-#### 📋 Card Data
-- Displays all extracted information in a formatted view
+- Displays all extracted information in formatted cards
 - Shows card photo if available
+- Quick copy buttons for CID, names, and address
 - Export buttons for JSON, CSV, and photo data
 - Card validity status and expiry warnings
-
-#### 🐛 Debug Logs
-- Real-time logging with timestamps
-- Shows connection status, APDU commands, and errors
-- Last 100 log entries displayed
-- Helpful for troubleshooting reader issues
-
-#### ℹ️ About
-- Application information
-- Usage instructions
-- System information
+- NHSO health insurance data display
+- Laser ID display with copy functionality
 
 ## Troubleshooting
 

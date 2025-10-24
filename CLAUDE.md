@@ -27,9 +27,8 @@ uv run python thai-idcard.py
 # or
 mise run run
 
-# Modern Streamlit interfaces
-uv run streamlit run debug/app_compact.py    # Compact modern UI
-uv run streamlit run debug/app.py             # Full debug UI with logs
+# Modern Streamlit interface
+uv run streamlit run debug/app.py    # Compact modern UI
 ```
 
 ### Code Quality
@@ -127,23 +126,21 @@ When modifying `system_check.py`:
 - System package checks (`apt_pkg`) only run if pyscard import fails
 - Skip checks entirely with `skip_system_check=True` parameter
 
-## Streamlit Interfaces
+## Streamlit Interface
 
-Two debug interfaces exist in `debug/`:
+A modern debug interface exists in `debug/`:
 
-**`app_compact.py`** (Recommended)
+**`app.py`**
 - Modern dark theme with gradient cards
-- Single-page layout with inline controls
+- Sidebar-based controls with clean main display
 - Production-ready appearance
-- Best for end-user card reading
+- Reader detection and connection management in sidebar
+- Includes NHSO health insurance data reading
+- Laser ID reading support
+- Copy-to-clipboard functionality for key fields
+- Expandable reader details with status indicators
 
-**`app.py`** (Debug/Development)
-- Multi-tab layout with sidebar
-- Comprehensive debug logging
-- Reader information details
-- Best for development and troubleshooting
-
-Both use Streamlit's new `width='stretch'` parameter (not deprecated `use_container_width=True`).
+Uses Streamlit's new `width='stretch'` parameter (not deprecated `use_container_width=True`).
 
 ## Testing Thai ID Card Reading
 
@@ -186,9 +183,8 @@ pythaiidcard/           # Core library
 ├── utils.py        # Utility functions (CID validation, date parsing)
 └── system_check.py # Dependency validation
 
-debug/              # Streamlit debug interfaces
-├── app.py          # Full debug UI (multi-tab)
-└── app_compact.py  # Modern compact UI (single-page)
+debug/              # Streamlit debug interface
+└── app.py          # Modern compact UI (single-page)
 ```
 
 Core functionality is in `reader.py`, which orchestrates APDU commands from `constants.py`, validates with `models.py`, and handles errors via `exceptions.py`.
