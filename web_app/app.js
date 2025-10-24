@@ -158,13 +158,28 @@ class ThaiIDCardApp {
 
             case 'card_inserted':
                 this.log('success', `Card detected in ${reader || 'reader'}`);
-                this.showToast('info', 'Card detected - reading...');
+                // Check message to determine if auto-read is happening
+                if (msg && msg.includes('reading automatically')) {
+                    this.showToast('info', 'Card detected - reading automatically...');
+                } else {
+                    this.showToast('info', 'Card detected - click "Read Card" button');
+                }
                 break;
 
             case 'card_read':
-                this.log('success', 'Card data received');
-                this.displayCardData(data);
-                this.showToast('success', 'Card read successfully!');
+                // Check if data is from cache
+                const isCached = data.cached === true;
+                const readAt = data.read_at;
+
+                if (isCached) {
+                    this.log('info', 'Card data from cache (remove card for fresh read)');
+                    this.displayCardData(data, { cached: true, readAt });
+                    this.showToast('info', 'Data from cache - remove card for fresh read');
+                } else {
+                    this.log('success', 'Card data read from hardware');
+                    this.displayCardData(data, { cached: false, readAt });
+                    this.showToast('success', 'Card read successfully!');
+                }
 
                 // Auto-copy CID if enabled
                 if (this.autoCopyEnabled && data.cid) {
@@ -195,7 +210,7 @@ class ThaiIDCardApp {
     /**
      * Display card data
      */
-    displayCardData(data) {
+    displayCardData(data, metadata = {}) {
         if (!data) return;
 
         this.cardData = data;
@@ -203,6 +218,9 @@ class ThaiIDCardApp {
         // Hide welcome, show card display
         this.elements.welcomeMessage.style.display = 'none';
         this.elements.cardDisplay.style.display = 'block';
+
+        // Update cache indicator
+        this.updateCacheIndicator(metadata.cached, metadata.readAt);
 
         // Update all fields
         for (const [elementId, fieldName] of Object.entries(this.fields)) {
@@ -220,6 +238,45 @@ class ThaiIDCardApp {
         } else {
             this.elements.photo.style.display = 'none';
             this.elements.photoPlaceholder.style.display = 'flex';
+        }
+    }
+
+    /**
+     * Update cache indicator badge
+     */
+    updateCacheIndicator(isCached, readAt) {
+        let indicator = document.getElementById('cache-indicator');
+
+        // Create indicator if it doesn't exist
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'cache-indicator';
+            indicator.className = 'cache-indicator';
+
+            // Insert at the top of card display
+            const cardDisplay = this.elements.cardDisplay;
+            cardDisplay.insertBefore(indicator, cardDisplay.firstChild);
+        }
+
+        if (isCached) {
+            const timestamp = readAt ? new Date(readAt).toLocaleString() : 'Unknown';
+            indicator.innerHTML = `
+                <span class="cache-badge cached">📋 Cached Data</span>
+                <span class="cache-timestamp">Read at: ${timestamp}</span>
+                <span class="cache-hint">Remove card for fresh read</span>
+            `;
+            indicator.className = 'cache-indicator cached';
+            indicator.style.display = 'block';
+        } else if (readAt) {
+            const timestamp = new Date(readAt).toLocaleString();
+            indicator.innerHTML = `
+                <span class="cache-badge fresh">✓ Fresh Read</span>
+                <span class="cache-timestamp">Read at: ${timestamp}</span>
+            `;
+            indicator.className = 'cache-indicator fresh';
+            indicator.style.display = 'block';
+        } else {
+            indicator.style.display = 'none';
         }
     }
 

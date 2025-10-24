@@ -462,3 +462,49 @@ main {
 .log-content::-webkit-scrollbar-thumb:hover {
     background: #6b7280;
 }
+
+/* Cache indicator */
+.cache-indicator {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.cache-indicator.cached {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+}
+
+.cache-indicator.fresh {
+    background: #d1fae5;
+    border-left: 4px solid #10b981;
+}
+
+.cache-badge {
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.cache-badge.cached {
+    color: #b45309;
+}
+
+.cache-badge.fresh {
+    color: #047857;
+}
+
+.cache-timestamp {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.cache-hint {
+    font-size: 12px;
+    color: #92400e;
+    font-style: italic;
+}

@@ -42,13 +42,13 @@ async def get_status(monitor=Depends(get_card_monitor)):
         ServerStatus: Current server status including reader and card detection info
     """
     try:
-        readers = ThaiIDCardReader.list_readers()
+        readers_info = ThaiIDCardReader.list_readers()
         monitor_status = monitor.get_status()
 
         return ServerStatus(
             status="running",
-            version="1.0.0",
-            readers_available=len(readers),
+            version="2.2.0",
+            readers_available=len(readers_info),
             card_detected=monitor_status["card_present"],
             reader_name=monitor_status["reader_name"],
             timestamp=datetime.now(),
@@ -64,13 +64,15 @@ async def list_readers():
     List all available card readers.
 
     Returns:
-        dict: List of available reader names
+        dict: List of available reader info
     """
     try:
-        readers = ThaiIDCardReader.list_readers()
+        readers_info = ThaiIDCardReader.list_readers()
+        # Convert CardReaderInfo objects to dicts
+        readers_list = [reader.model_dump() for reader in readers_info]
         return {
-            "readers": readers,
-            "count": len(readers),
+            "readers": readers_list,
+            "count": len(readers_list),
             "timestamp": datetime.now(),
         }
     except Exception as e:
@@ -169,6 +171,30 @@ async def read_card(
             error=str(e),
             timestamp=datetime.now(),
         )
+
+
+@router.post("/card/cache/clear")
+async def clear_cache(monitor=Depends(get_card_monitor)):
+    """
+    Clear the cached card data.
+
+    This forces the next read to fetch fresh data from the card hardware.
+
+    Returns:
+        dict: Result of the cache clear operation
+    """
+    try:
+        cleared = monitor.clear_cache()
+
+        return {
+            "success": True,
+            "cleared": cleared,
+            "message": "Cache cleared successfully" if cleared else "No cache to clear",
+            "timestamp": datetime.now(),
+        }
+    except Exception as e:
+        logger.error(f"Error clearing cache: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/health")
