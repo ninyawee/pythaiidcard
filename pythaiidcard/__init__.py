@@ -3,7 +3,7 @@
 A Python library for reading data from Thai National ID cards using smart card readers.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from .exceptions import (
     CardConnectionError,

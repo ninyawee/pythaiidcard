@@ -9,6 +9,7 @@ Python library for reading Thai national ID cards using smartcard readers.
 ## Table of Contents
 
 - [Features](#features)
+- [What's New in v0.3.0](#whats-new-in-v030)
 - [Quick Start](#quick-start)
 - [Flutter Library Development](#flutter-library-development)
 - [Prerequisites](#prerequisites)
@@ -38,6 +39,25 @@ Python library for reading Thai national ID cards using smartcard readers.
 - 🔍 **Error Handling**: Comprehensive exception handling and system checks
 - 📦 **Zero Config**: Auto-detects readers and connects to cards
 - 🚀 **Fast**: Efficient APDU command implementation
+
+## What's New in v0.3.0
+
+### Debug Interface Improvements
+- 🎨 **Consolidated Modern Interface**: Merged debug interfaces into a single sidebar-based layout
+- 📱 **Better Organization**: Expandable reader list with status indicators in sidebar
+- ✨ **Quick Copy Buttons**: One-click copy for CID, names, and address fields
+- 🌓 **Dark Gradient Theme**: Modern, production-ready appearance with card-based design
+
+### API Server Updates (v2.3.0)
+- ⚡ **Event-Driven Monitoring**: New PCSCMonitor with real-time PC/SC state change detection
+- 🔄 **Auto-Read by Default**: Reliable automatic card reading on insertion
+- 🔧 **Improved Reliability**: Better handling of reader availability and connection states
+- 🐛 **Field Mapping Fixes**: Corrected web app field names to match API model
+
+### Documentation
+- 📚 **Organized Structure**: Moved documentation files to `notes/` directory
+- 📝 **Updated Guides**: Comprehensive documentation for all interfaces
+- 🧪 **Test Coverage**: Added event-driven monitoring tests
 
 ## Quick Start
 
