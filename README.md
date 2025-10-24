@@ -10,6 +10,7 @@ Python library for reading Thai national ID cards using smartcard readers.
 
 - [Features](#features)
 - [Quick Start](#quick-start)
+- [Flutter Library Development](#flutter-library-development)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -49,6 +50,36 @@ uv run streamlit run debug/app_compact.py
 ```
 
 Then open http://localhost:8501 in your browser, insert your Thai ID card, and click "Scan Readers" → "Connect" → "Read Card".
+
+## Flutter Library Development
+
+We are actively working on a **Flutter version** of this library for cross-platform mobile support (iOS/Android). The development is in progress at [`playground/thai_idcard_reader_test/`](playground/thai_idcard_reader_test/).
+
+### Key Features
+- **Package:** Uses the [`ccid`](https://pub.dev/packages/ccid) Flutter package for smartcard reading
+- **Platform Support:** iOS (13.0+) and Android with USB OTG smartcard readers
+- **Architecture:** Mirrors the Python implementation using APDU commands over PC/SC
+- **CI/CD:** Automated iOS builds via GitHub Actions and Fastlane
+
+### Getting Started with Flutter Version
+
+```bash
+cd playground/thai_idcard_reader_test/
+
+# Install dependencies
+flutter pub get
+
+# Run on Android device
+flutter run
+
+# For iOS builds, see the CI/CD workflow or use GitHub Actions
+```
+
+See the [Flutter project README](playground/thai_idcard_reader_test/README.md) for detailed setup instructions, hardware requirements, and iOS cloud build configuration.
+
+**Note:** Thai National ID cards do NOT support NFC - external USB OTG (Android) or MFi-certified (iOS) smartcard readers are required.
+
+**iOS Testing Limitation:** The author currently lacks access to a Mac, making iOS testing challenging. However, the project includes GitHub Actions CI/CD for automated iOS builds. Community contributions and testing on iOS devices are highly appreciated!
 
 ## Credits
 
