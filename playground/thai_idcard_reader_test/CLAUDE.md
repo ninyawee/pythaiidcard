@@ -398,6 +398,6 @@ This Flutter project mirrors the Python `pythaiidcard` library:
 | `pythaiidcard/constants.py` | APDU command definitions |
 | `pythaiidcard/models.py` | Dart data models (freezed/json_serializable) |
 | `pythaiidcard/utils.py` | Date/CID validation functions |
-| `debug/app_compact.py` (Streamlit) | Flutter Material UI |
+| `debug/app.py` (Streamlit) | Flutter Material UI |
 
 Use Python implementation as reference for APDU commands, response parsing, and data validation logic.

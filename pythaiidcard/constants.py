@@ -26,7 +26,9 @@ class CardCommands:
     )
     
     THAI_ID_APPLET = [0xA0, 0x00, 0x00, 0x00, 0x54, 0x48, 0x00, 0x01]
-    
+    NHSO_APPLET = [0xA0, 0x00, 0x00, 0x00, 0x54, 0x48, 0x00, 0x83]
+    CARD_APPLET = [0xA0, 0x00, 0x00, 0x00, 0x84, 0x06, 0x00, 0x02]
+
     # Personal information commands
     CID = APDUCommand(
         [0x80, 0xb0, 0x00, 0x04, 0x02, 0x00, 0x0d],
@@ -97,13 +99,65 @@ class CardCommands:
         APDUCommand([0x80, 0xb0, 0x14, 0x68, 0x02, 0x00, 0xFF], "Photo part 20/20"),
     ]
     
+    # NHSO Health Insurance commands
+    NHSO_MAIN_INSCL = APDUCommand(
+        [0x80, 0xb0, 0x00, 0x04, 0x02, 0x00, 0x3c],
+        "Main insurance classification (60 bytes)"
+    )
+
+    NHSO_SUB_INSCL = APDUCommand(
+        [0x80, 0xb0, 0x00, 0x40, 0x02, 0x00, 0x64],
+        "Sub insurance classification (100 bytes)"
+    )
+
+    NHSO_MAIN_HOSPITAL_NAME = APDUCommand(
+        [0x80, 0xb0, 0x00, 0xa4, 0x02, 0x00, 0x50],
+        "Main hospital name (80 bytes)"
+    )
+
+    NHSO_SUB_HOSPITAL_NAME = APDUCommand(
+        [0x80, 0xb0, 0x00, 0xf4, 0x02, 0x00, 0x50],
+        "Sub hospital name (80 bytes)"
+    )
+
+    NHSO_PAID_TYPE = APDUCommand(
+        [0x80, 0xb0, 0x01, 0x44, 0x02, 0x00, 0x01],
+        "Paid type (1 byte)"
+    )
+
+    NHSO_ISSUE_DATE = APDUCommand(
+        [0x80, 0xb0, 0x01, 0x45, 0x02, 0x00, 0x08],
+        "NHSO issue date (YYYYMMDD in Buddhist Era)"
+    )
+
+    NHSO_EXPIRE_DATE = APDUCommand(
+        [0x80, 0xb0, 0x01, 0x4d, 0x02, 0x00, 0x08],
+        "NHSO expiry date (YYYYMMDD in Buddhist Era)"
+    )
+
+    NHSO_UPDATE_DATE = APDUCommand(
+        [0x80, 0xb0, 0x01, 0x55, 0x02, 0x00, 0x08],
+        "NHSO update date (YYYYMMDD in Buddhist Era)"
+    )
+
+    NHSO_CHANGE_HOSPITAL_AMOUNT = APDUCommand(
+        [0x80, 0xb0, 0x01, 0x5d, 0x02, 0x00, 0x01],
+        "Change hospital amount (1 byte)"
+    )
+
+    # Card/Laser ID commands
+    LASER_ID = APDUCommand(
+        [0x80, 0x00, 0x00, 0x00, 0x07],
+        "Laser engraved ID (7 bytes)"
+    )
+
     @classmethod
     def get_read_request(cls, atr: List[int]) -> List[int]:
         """Get the appropriate read request based on ATR.
-        
+
         Args:
             atr: Answer to Reset bytes
-            
+
         Returns:
             Read request command bytes
         """

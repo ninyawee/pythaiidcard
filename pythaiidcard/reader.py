@@ -2,11 +2,15 @@
 
 import logging
 from contextlib import contextmanager
-from typing import List, Optional, Tuple, Generator
+from typing import TYPE_CHECKING, List, Optional, Generator
 
 from smartcard.CardConnection import CardConnection
 from smartcard.System import readers
 from smartcard.util import toHexString
+from smartcard.scard import SCARD_SHARE_SHARED
+
+if TYPE_CHECKING:
+    from smartcard.reader import Reader
 
 from .constants import APDUCommand, CardCommands, ResponseStatus
 from .exceptions import (
@@ -17,9 +21,8 @@ from .exceptions import (
     InvalidReaderIndexError,
     NoCardDetectedError,
     NoReaderFoundError,
-    SystemDependencyError,
 )
-from .models import CardReaderInfo, ThaiIDCard
+from .models import CardReaderInfo, NHSOData, ThaiIDCard
 from .system_check import check_and_raise_if_missing
 from .utils import thai_to_unicode
 
@@ -28,9 +31,13 @@ logger = logging.getLogger(__name__)
 
 class ThaiIDCardReader:
     """Reader for Thai National ID Cards."""
-    
-    def __init__(self, reader_index: Optional[int] = None, retry_count: int = 3,
-                 skip_system_check: bool = False):
+
+    def __init__(
+        self,
+        reader_index: Optional[int] = None,
+        retry_count: int = 3,
+        skip_system_check: bool = False,
+    ):
         """Initialize the Thai ID Card reader.
 
         Args:
@@ -49,7 +56,7 @@ class ThaiIDCardReader:
         self.connection: Optional[CardConnection] = None
         self.atr: Optional[List[int]] = None
         self._request_command: Optional[List[int]] = None
-    
+
     @staticmethod
     def list_readers(skip_system_check: bool = False) -> List[CardReaderInfo]:
         """List all available smart card readers.
@@ -68,62 +75,60 @@ class ThaiIDCardReader:
         check_and_raise_if_missing(skip_check=skip_system_check)
 
         reader_list = readers()
-        
+
         if not reader_list:
             raise NoReaderFoundError()
-        
+
         readers_info = []
         for index, reader in enumerate(reader_list):
-            info = CardReaderInfo(
-                index=index,
-                name=str(reader),
-                connected=False
-            )
-            
+            info = CardReaderInfo(index=index, name=str(reader), connected=False)
+
             # Try to get ATR if card is present
             try:
                 connection = reader.createConnection()
-                connection.connect()
+                connection.connect(mode=SCARD_SHARE_SHARED)
                 atr = connection.getATR()
                 info.atr = toHexString(atr)
                 info.connected = True
                 connection.disconnect()
             except Exception:
                 pass
-            
+
             readers_info.append(info)
-        
+
         return readers_info
-    
-    def _get_reader(self) -> 'smartcard.reader.Reader':
+
+    def _get_reader(self) -> "Reader":
         """Get the smart card reader.
-        
+
         Returns:
             Selected reader instance
-            
+
         Raises:
             NoReaderFoundError: If no readers are found
             InvalidReaderIndexError: If specified index is invalid
         """
         reader_list = readers()
-        
+
         if not reader_list:
             raise NoReaderFoundError()
-        
+
         if self.reader_index is None:
             # Auto-select first reader
             logger.info(f"Auto-selecting first reader: {reader_list[0]}")
             return reader_list[0]
-        
+
         if self.reader_index < 0 or self.reader_index >= len(reader_list):
             raise InvalidReaderIndexError(self.reader_index, len(reader_list))
-        
-        logger.info(f"Using reader {self.reader_index}: {reader_list[self.reader_index]}")
+
+        logger.info(
+            f"Using reader {self.reader_index}: {reader_list[self.reader_index]}"
+        )
         return reader_list[self.reader_index]
-    
+
     def connect(self) -> None:
         """Connect to the Thai ID card.
-        
+
         Raises:
             NoCardDetectedError: If no card is detected
             CardConnectionError: If connection fails
@@ -132,17 +137,19 @@ class ThaiIDCardReader:
         try:
             reader = self._get_reader()
             self.connection = reader.createConnection()
-            self.connection.connect()
-            
+            # Use SHARED mode instead of EXCLUSIVE to avoid card reset issues
+            # This matches the Node.js pcsclite implementation with SCARD_SHARE_SHARED
+            self.connection.connect(mode=SCARD_SHARE_SHARED)
+
             self.atr = self.connection.getATR()
             logger.info(f"Connected to card, ATR: {toHexString(self.atr)}")
-            
+
             # Determine request command based on ATR
             self._request_command = CardCommands.get_read_request(self.atr)
-            
+
             # Select Thai ID applet
             self._select_applet()
-            
+
         except NoReaderFoundError:
             raise
         except InvalidReaderIndexError:
@@ -151,7 +158,7 @@ class ThaiIDCardReader:
             if "No card in reader" in str(e):
                 raise NoCardDetectedError()
             raise CardConnectionError(error=e)
-    
+
     def disconnect(self) -> None:
         """Disconnect from the card."""
         if self.connection:
@@ -164,59 +171,89 @@ class ThaiIDCardReader:
                 self.connection = None
                 self.atr = None
                 self._request_command = None
-    
+
     def _select_applet(self) -> None:
         """Select the Thai ID card applet.
-        
+
         Raises:
             InvalidCardError: If not a Thai ID card
         """
         command = CardCommands.SELECT_APPLET.command + CardCommands.THAI_ID_APPLET
         data, sw1, sw2 = self.connection.transmit(command)
-        
+
         if not ResponseStatus.is_success(sw1, sw2):
-            raise InvalidCardError(f"Failed to select Thai ID applet: {sw1:02X} {sw2:02X}")
-        
+            raise InvalidCardError(
+                f"Failed to select Thai ID applet: {sw1:02X} {sw2:02X}"
+            )
+
         logger.info("Thai ID applet selected successfully")
-    
+
+    def _select_nhso_applet(self) -> None:
+        """Select the NHSO health insurance applet.
+
+        Raises:
+            InvalidCardError: If NHSO applet selection fails
+        """
+        command = CardCommands.SELECT_APPLET.command + CardCommands.NHSO_APPLET
+        data, sw1, sw2 = self.connection.transmit(command)
+
+        if not ResponseStatus.is_success(sw1, sw2):
+            raise InvalidCardError(f"Failed to select NHSO applet: {sw1:02X} {sw2:02X}")
+
+        logger.info("NHSO applet selected successfully")
+
+    def _select_card_applet(self) -> None:
+        """Select the Card applet for laser ID reading.
+
+        Raises:
+            InvalidCardError: If Card applet selection fails
+        """
+        command = CardCommands.SELECT_APPLET.command + CardCommands.CARD_APPLET
+        data, sw1, sw2 = self.connection.transmit(command)
+
+        if not ResponseStatus.is_success(sw1, sw2):
+            raise InvalidCardError(f"Failed to select Card applet: {sw1:02X} {sw2:02X}")
+
+        logger.info("Card applet selected successfully")
+
     def _send_command(self, apdu_command: APDUCommand) -> bytes:
         """Send an APDU command and get the response.
-        
+
         Args:
             apdu_command: APDU command to send
-            
+
         Returns:
             Response data as bytes
-            
+
         Raises:
             CommandError: If command fails
         """
         if not self.connection:
             raise CardConnectionError("Not connected to card")
-        
+
         # Send initial command
         data, sw1, sw2 = self.connection.transmit(apdu_command.command)
-        
+
         # Get response data
         if ResponseStatus.has_more_data(sw1):
             # Read the response
             read_cmd = self._request_command + [apdu_command.command[-1]]
             data, sw1, sw2 = self.connection.transmit(read_cmd)
-            
+
             if not ResponseStatus.is_success(sw1, sw2):
                 raise CommandError(apdu_command.description, sw1, sw2)
-        
+
         return bytes(data)
-    
+
     def _read_text_field(self, apdu_command: APDUCommand) -> str:
         """Read a text field from the card.
-        
+
         Args:
             apdu_command: APDU command for the field
-            
+
         Returns:
             Decoded text string
-            
+
         Raises:
             DataReadError: If reading fails
         """
@@ -228,38 +265,41 @@ class ThaiIDCardReader:
                 if attempt == self.retry_count - 1:
                     raise DataReadError(apdu_command.description, e)
                 logger.warning(f"Retry {attempt + 1} for {apdu_command.description}")
-    
+
     def _read_photo(self, progress_callback: Optional[callable] = None) -> bytes:
         """Read photo data from the card.
-        
+
         Args:
             progress_callback: Optional callback for progress updates
-            
+
         Returns:
             Complete photo data as bytes
-            
+
         Raises:
             DataReadError: If reading photo fails
         """
-        photo_data = b''
+        photo_data = b""
         total_parts = len(CardCommands.PHOTO_COMMANDS)
-        
+
         for i, photo_cmd in enumerate(CardCommands.PHOTO_COMMANDS):
             try:
                 data = self._send_command(photo_cmd)
                 photo_data += data
-                
+
                 if progress_callback:
                     progress_callback(i + 1, total_parts)
-                    
+
                 logger.debug(f"Read photo part {i + 1}/{total_parts}")
             except Exception as e:
                 raise DataReadError(f"Photo part {i + 1}", e)
-        
+
         return photo_data
-    
-    def read_card(self, include_photo: bool = True,
-                  photo_progress_callback: Optional[callable] = None) -> ThaiIDCard:
+
+    def read_card(
+        self,
+        include_photo: bool = True,
+        photo_progress_callback: Optional[callable] = None,
+    ) -> ThaiIDCard:
         """Read all data from Thai ID card.
 
         Args:
@@ -276,9 +316,12 @@ class ThaiIDCardReader:
         """
         if not self.connection:
             raise CardConnectionError("Not connected to card. Call connect() first.")
-        
+
         logger.info("Reading Thai ID card data...")
-        
+
+        # Re-select Thai ID applet in case another applet was selected
+        self._select_applet()
+
         # Read all fields
         cid = self._read_text_field(CardCommands.CID)
         thai_fullname = self._read_text_field(CardCommands.THAI_FULLNAME)
@@ -289,34 +332,110 @@ class ThaiIDCardReader:
         issue_date = self._read_text_field(CardCommands.ISSUE_DATE)
         expire_date = self._read_text_field(CardCommands.EXPIRE_DATE)
         address = self._read_text_field(CardCommands.ADDRESS)
-        
+
         # Read photo if requested
         photo = None
         if include_photo:
             logger.info("Reading photo data...")
             photo = self._read_photo(photo_progress_callback)
-        
+
         # Create and return the card model
+        # The validators will automatically parse the raw strings into Name and Address objects
         card = ThaiIDCard(
             cid=cid,
-            thai_fullname=thai_fullname,
-            english_fullname=english_fullname,
+            thai_name=thai_fullname,  # Will be parsed by validator
+            english_name=english_fullname,  # Will be parsed by validator
             date_of_birth=date_of_birth,
             gender=gender,
             card_issuer=card_issuer,
             issue_date=issue_date,
             expire_date=expire_date,
-            address=address,
-            photo=photo
+            address_info=address,  # Will be parsed by validator
+            photo=photo,
         )
-        
+
         logger.info(f"Successfully read card for CID: {cid}")
         return card
-    
+
+    def read_nhso_data(self) -> NHSOData:
+        """Read NHSO (National Health Security Office) data from Thai ID card.
+
+        Returns:
+            NHSOData object with health insurance information
+
+        Raises:
+            CardConnectionError: If not connected to card
+            DataReadError: If reading any field fails
+            CommandError: If APDU command fails
+            InvalidCardError: If NHSO applet selection fails
+        """
+        if not self.connection:
+            raise CardConnectionError("Not connected to card. Call connect() first.")
+
+        logger.info("Reading NHSO health insurance data...")
+
+        # Select NHSO applet
+        self._select_nhso_applet()
+
+        # Read all NHSO fields
+        main_inscl = self._read_text_field(CardCommands.NHSO_MAIN_INSCL)
+        sub_inscl = self._read_text_field(CardCommands.NHSO_SUB_INSCL)
+        main_hospital_name = self._read_text_field(CardCommands.NHSO_MAIN_HOSPITAL_NAME)
+        sub_hospital_name = self._read_text_field(CardCommands.NHSO_SUB_HOSPITAL_NAME)
+        paid_type = self._read_text_field(CardCommands.NHSO_PAID_TYPE)
+        issue_date = self._read_text_field(CardCommands.NHSO_ISSUE_DATE)
+        expire_date = self._read_text_field(CardCommands.NHSO_EXPIRE_DATE)
+        update_date = self._read_text_field(CardCommands.NHSO_UPDATE_DATE)
+        change_hospital_amount = self._read_text_field(
+            CardCommands.NHSO_CHANGE_HOSPITAL_AMOUNT
+        )
+
+        # Create and return the NHSO data model
+        nhso_data = NHSOData(
+            main_inscl=main_inscl,
+            sub_inscl=sub_inscl,
+            main_hospital_name=main_hospital_name,
+            sub_hospital_name=sub_hospital_name,
+            paid_type=paid_type,
+            issue_date=issue_date,
+            expire_date=expire_date,
+            update_date=update_date,
+            change_hospital_amount=change_hospital_amount,
+        )
+
+        logger.info("Successfully read NHSO data")
+        return nhso_data
+
+    def read_laser_id(self) -> str:
+        """Read laser-engraved ID from Thai ID card.
+
+        Returns:
+            Laser ID as a string
+
+        Raises:
+            CardConnectionError: If not connected to card
+            DataReadError: If reading fails
+            CommandError: If APDU command fails
+            InvalidCardError: If Card applet selection fails
+        """
+        if not self.connection:
+            raise CardConnectionError("Not connected to card. Call connect() first.")
+
+        logger.info("Reading laser ID...")
+
+        # Select Card applet
+        self._select_card_applet()
+
+        # Read laser ID
+        laser_id = self._read_text_field(CardCommands.LASER_ID)
+
+        logger.info(f"Successfully read laser ID: {laser_id}")
+        return laser_id
+
     @contextmanager
-    def card_session(self) -> Generator['ThaiIDCardReader', None, None]:
+    def card_session(self) -> Generator["ThaiIDCardReader", None, None]:
         """Context manager for card operations.
-        
+
         Usage:
             with reader.card_session():
                 card = reader.read_card()
@@ -328,8 +447,9 @@ class ThaiIDCardReader:
             self.disconnect()
 
 
-def read_thai_id_card(reader_index: Optional[int] = None,
-                     include_photo: bool = True) -> ThaiIDCard:
+def read_thai_id_card(
+    reader_index: Optional[int] = None, include_photo: bool = True
+) -> ThaiIDCard:
     """Convenience function to read a Thai ID card.
 
     Args:
@@ -348,6 +468,6 @@ def read_thai_id_card(reader_index: Optional[int] = None,
         DataReadError: If reading data fails
     """
     reader = ThaiIDCardReader(reader_index)
-    
+
     with reader.card_session():
         return reader.read_card(include_photo)

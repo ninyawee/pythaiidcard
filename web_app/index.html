@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thai ID Card Reader</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎴 Thai ID Card Reader</h1>
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="status-text">Disconnected</span>
+                </div>
+                <div class="connection-info" id="connection-info"></div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Welcome message (shown when no card data) -->
+            <div class="welcome-message" id="welcome-message">
+                <div class="icon">📋</div>
+                <h2>Welcome to Thai ID Card Reader</h2>
+                <p>Insert a Thai National ID card to begin reading.</p>
+                <div class="instructions">
+                    <h3>Instructions:</h3>
+                    <ol>
+                        <li>Ensure your card reader is connected</li>
+                        <li>Insert your Thai National ID card</li>
+                        <li>Data will be read automatically</li>
+                        <li>Click any copy button to copy field data</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Card display (shown when card data is available) -->
+            <div class="card-display" id="card-display" style="display: none;">
+                <div class="card-header">
+                    <h2>Card Information</h2>
+                    <button class="btn-secondary" id="btn-clear">Clear Data</button>
+                </div>
+
+                <div class="card-content">
+                    <!-- Photo section -->
+                    <div class="photo-section">
+                        <img id="photo" src="" alt="Card Photo" />
+                        <div class="photo-placeholder" id="photo-placeholder">
+                            <span>📷</span>
+                            <p>No Photo</p>
+                        </div>
+                    </div>
+
+                    <!-- Info section -->
+                    <div class="info-section">
+                        <div class="field-group">
+                            <label>Citizen ID (เลขประจำตัวประชาชน)</label>
+                            <div class="field-value">
+                                <span id="cid" class="value">-</span>
+                                <button class="copy-btn" data-field="cid" title="Copy to clipboard">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label>Name - Thai (ชื่อ-นามสกุล ไทย)</label>
+                            <div class="field-value">
+                                <span id="name-th" class="value">-</span>
+                                <button class="copy-btn" data-field="thai_fullname" title="Copy to clipboard">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label>Name - English (ชื่อ-นามสกุล อังกฤษ)</label>
+                            <div class="field-value">
+                                <span id="name-en" class="value">-</span>
+                                <button class="copy-btn" data-field="english_fullname" title="Copy to clipboard">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label>Date of Birth (วันเกิด)</label>
+                                <div class="field-value">
+                                    <span id="dob" class="value">-</span>
+                                    <button class="copy-btn" data-field="date_of_birth" title="Copy to clipboard">📋</button>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label>Gender (เพศ)</label>
+                                <div class="field-value">
+                                    <span id="gender" class="value">-</span>
+                                    <button class="copy-btn" data-field="gender_text" title="Copy to clipboard">📋</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label>Address (ที่อยู่)</label>
+                            <div class="field-value">
+                                <span id="address" class="value">-</span>
+                                <button class="copy-btn" data-field="address" title="Copy to clipboard">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label>Issue Date (วันออกบัตร)</label>
+                                <div class="field-value">
+                                    <span id="issue-date" class="value">-</span>
+                                    <button class="copy-btn" data-field="issue_date" title="Copy to clipboard">📋</button>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label>Expire Date (วันบัตรหมดอายุ)</label>
+                                <div class="field-value">
+                                    <span id="expire-date" class="value">-</span>
+                                    <button class="copy-btn" data-field="expire_date" title="Copy to clipboard">📋</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="btn-primary" id="btn-read">🔄 Read Card Manually</button>
+            </div>
+
+            <!-- Event log -->
+            <div class="event-log">
+                <div class="log-header">
+                    <h3>Event Log</h3>
+                    <button class="btn-small" id="btn-clear-log">Clear</button>
+                </div>
+                <div class="log-content" id="log-content">
+                    <div class="log-entry log-info">
+                        <span class="log-time">--:--:--</span>
+                        <span class="log-message">Waiting for connection...</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -100,6 +100,9 @@ reader = ThaiIDCardReader(skip_system_check=True)
 
 ## Hardware Setup
 
+!!! info "Hardware Compatibility"
+    Not all smartcard readers behave the same. Some readers have hardware limitations that may affect functionality. See [Hardware Compatibility](hardware-compatibility.md) for tested readers and known issues.
+
 ### Recommended Hardware
 
 The library works with any PC/SC compatible smartcard reader. The author uses and recommends:
@@ -127,6 +130,9 @@ The library works with any PC/SC compatible smartcard reader. The author uses an
     - Gemalto readers
     - ACS ACR122U
     - Built-in laptop smartcard readers
+
+!!! warning "Known Limitations"
+    **Alcor Link AK9563:** This reader has known limitations with auto-read functionality. It works perfectly in on-demand mode (default in v2.2.0+). See [Hardware Compatibility](hardware-compatibility.md#alcor-link-ak9563-alcor-micro) for details.
 
 ### Connect Your Smartcard Reader
 
@@ -206,7 +212,7 @@ uv run ruff check .
 uv run ruff format .
 
 # Run the web UI
-uv run streamlit run debug/app_compact.py
+uv run streamlit run debug/app.py
 ```
 
 ## Troubleshooting
@@ -215,5 +221,6 @@ See the [Troubleshooting](troubleshooting.md) guide for common installation issu
 
 ## Next Steps
 
-- [Usage Guide →](usage.md)
-- [API Reference →](api-reference.md)
+- [Hardware Compatibility →](hardware-compatibility.md) - Check your reader compatibility
+- [Usage Guide →](usage.md) - Learn how to use the library
+- [API Reference →](api-reference.md) - Detailed API documentation

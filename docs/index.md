@@ -63,6 +63,7 @@ The library extracts the following information from Thai National ID cards:
 - **Smartcard Reader**: PC/SC compatible smartcard reader
   - Recommended: [USB-C Smart Card Reader](https://s.shopee.co.th/9zpLTwW3c8)* (tested by author)
   - Or any other PC/SC compatible reader
+  - See [Hardware Compatibility](hardware-compatibility.md) for tested readers
 - **Thai National ID card**: Modern card with chip (issued 2010+)
 
 <small>* Affiliate link</small>
@@ -94,6 +95,7 @@ This project is licensed under the ISC License. See the [LICENSE](https://github
 ## Next Steps
 
 - [Installation Guide →](installation.md)
+- [Hardware Compatibility →](hardware-compatibility.md)
 - [Usage Examples →](usage.md)
 - [API Reference →](api-reference.md)
 - [Troubleshooting →](troubleshooting.md)

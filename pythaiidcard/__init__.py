@@ -3,7 +3,7 @@
 A Python library for reading data from Thai National ID cards using smart card readers.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 
 from .exceptions import (
     CardConnectionError,
@@ -17,7 +17,7 @@ from .exceptions import (
     SystemDependencyError,
     ThaiIDCardException,
 )
-from .models import CardReaderInfo, ThaiIDCard
+from .models import Address, CardReaderInfo, Name, NHSOData, ThaiIDCard
 from .reader import ThaiIDCardReader, read_thai_id_card
 from .utils import (
     calculate_age,
@@ -33,11 +33,13 @@ __all__ = [
     # Main classes
     "ThaiIDCardReader",
     "ThaiIDCard",
+    "NHSOData",
     "CardReaderInfo",
-    
+    # Data models
+    "Name",
+    "Address",
     # Convenience functions
     "read_thai_id_card",
-    
     # Utilities
     "format_cid",
     "validate_cid",
@@ -46,7 +48,6 @@ __all__ = [
     "format_address",
     "calculate_age",
     "is_card_expired",
-    
     # Exceptions
     "ThaiIDCardException",
     "NoReaderFoundError",
