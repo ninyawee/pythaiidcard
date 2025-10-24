@@ -1,0 +1,13 @@
+# Appfile for Thai ID Card Reader Test
+
+# Your Apple ID
+apple_id(ENV["APPLE_ID"] || "your-apple-id@example.com")
+
+# Your Team ID
+team_id(ENV["TEAM_ID"] || "YOUR_TEAM_ID")
+
+# App Identifier
+app_identifier(ENV["APP_IDENTIFIER"] || "com.example.thaiIdcardReaderTest")
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile

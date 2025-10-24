@@ -1,0 +1,256 @@
+# Fastfile for Thai ID Card Reader Test iOS
+# This file contains the fastlane.tools configuration for automating iOS builds
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Description of what the lane does"
+
+  before_all do
+    # Set up environment
+    setup_ci if ENV['CI']
+  end
+
+  # Development Lanes
+
+  desc "Build iOS app for development"
+  lane :build_dev do
+    # Install dependencies
+    sh("cd ../../ && flutter pub get")
+
+    # Build Flutter app
+    sh("cd ../../ && flutter build ios --debug --no-codesign")
+
+    UI.success("✅ Development build completed successfully!")
+  end
+
+  desc "Build and run tests"
+  lane :test do
+    # Install dependencies
+    sh("cd ../../ && flutter pub get")
+
+    # Run Flutter tests
+    sh("cd ../../ && flutter test")
+
+    # Run Flutter analyze
+    sh("cd ../../ && flutter analyze")
+
+    UI.success("✅ All tests passed!")
+  end
+
+  # Release Lanes
+
+  desc "Build iOS app for release (requires code signing)"
+  lane :build_release do |options|
+    # Ensure we're on a clean branch
+    ensure_git_status_clean unless options[:skip_git_check]
+
+    # Install dependencies
+    sh("cd ../../ && flutter pub get")
+
+    # Build Flutter app in release mode
+    sh("cd ../../ && flutter build ios --release")
+
+    # Build and archive the app
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "development",
+      output_directory: "./build",
+      output_name: "ThaiIDCardReader.ipa",
+      clean: true,
+      export_options: {
+        method: "development",
+        provisioningProfiles: {
+          "com.example.thaiIdcardReaderTest" => ENV["PROVISIONING_PROFILE_NAME"]
+        }
+      }
+    )
+
+    UI.success("✅ Release build completed successfully!")
+    UI.message("📦 IPA location: ./build/ThaiIDCardReader.ipa")
+  end
+
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    # Ensure code signing is set up
+    setup_code_signing
+
+    # Build release
+    build_release
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      skip_submission: true,
+      distribute_external: false,
+      notify_external_testers: false
+    )
+
+    UI.success("✅ Build uploaded to TestFlight!")
+  end
+
+  desc "Build and upload to App Store"
+  lane :release do
+    # Ensure code signing is set up
+    setup_code_signing
+
+    # Build release
+    build_release
+
+    # Upload to App Store
+    upload_to_app_store(
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: false
+    )
+
+    UI.success("✅ Build uploaded to App Store!")
+  end
+
+  # Code Signing Lanes
+
+  desc "Setup code signing using match"
+  lane :setup_code_signing do
+    # This lane uses fastlane match for code signing
+    # Requires match repository to be set up
+    # Uncomment and configure if using match:
+
+    # match(
+    #   type: "development",
+    #   readonly: ENV['CI'],
+    #   app_identifier: "com.example.thaiIdcardReaderTest"
+    # )
+
+    UI.message("⚠️  Code signing setup - configure match or manual signing")
+  end
+
+  desc "Setup code signing certificates manually"
+  lane :setup_certificates do |options|
+    cert_path = options[:cert_path] || ENV["IOS_CERTIFICATE_PATH"]
+    cert_password = options[:cert_password] || ENV["IOS_CERTIFICATE_PASSWORD"]
+    profile_path = options[:profile_path] || ENV["IOS_PROVISIONING_PROFILE_PATH"]
+
+    if cert_path && File.exist?(cert_path)
+      import_certificate(
+        certificate_path: cert_path,
+        certificate_password: cert_password,
+        keychain_name: "fastlane_tmp_keychain",
+        keychain_password: ""
+      )
+      UI.success("✅ Certificate imported")
+    else
+      UI.error("❌ Certificate not found at: #{cert_path}")
+    end
+
+    if profile_path && File.exist?(profile_path)
+      install_provisioning_profile(path: profile_path)
+      UI.success("✅ Provisioning profile installed")
+    else
+      UI.error("❌ Provisioning profile not found at: #{profile_path}")
+    end
+  end
+
+  # Utility Lanes
+
+  desc "Clean build artifacts"
+  lane :clean do
+    sh("cd ../../ && flutter clean")
+    sh("rm -rf build/")
+    sh("rm -rf DerivedData/")
+
+    UI.success("✅ Build artifacts cleaned!")
+  end
+
+  desc "Update Flutter dependencies"
+  lane :update_deps do
+    sh("cd ../../ && flutter pub get")
+    sh("cd ../../ && pod install --repo-update")
+
+    UI.success("✅ Dependencies updated!")
+  end
+
+  desc "Run code analysis and formatting"
+  lane :lint do
+    # Analyze Dart code
+    sh("cd ../../ && flutter analyze")
+
+    # Check formatting
+    sh("cd ../../ && dart format --set-exit-if-changed lib test")
+
+    UI.success("✅ Code analysis passed!")
+  end
+
+  desc "Increment build number"
+  lane :bump_build do
+    increment_build_number(
+      xcodeproj: "Runner.xcodeproj"
+    )
+
+    build_num = get_build_number(xcodeproj: "Runner.xcodeproj")
+    UI.success("✅ Build number incremented to: #{build_num}")
+  end
+
+  desc "Set version number"
+  lane :set_version do |options|
+    version = options[:version]
+
+    if version.nil?
+      UI.user_error!("❌ Please provide a version number: fastlane set_version version:1.0.0")
+    end
+
+    increment_version_number(
+      version_number: version,
+      xcodeproj: "Runner.xcodeproj"
+    )
+
+    UI.success("✅ Version set to: #{version}")
+  end
+
+  # CI/CD Specific Lanes
+
+  desc "CI build lane for GitHub Actions"
+  lane :ci_build do |options|
+    build_type = options[:build_type] || "debug"
+
+    # Setup CI environment
+    setup_ci
+
+    # Install dependencies
+    sh("cd ../../ && flutter pub get")
+    sh("pod install --repo-update")
+
+    if build_type == "release"
+      # Setup code signing for release
+      setup_certificates
+
+      # Build release
+      sh("cd ../../ && flutter build ios --release")
+
+      # Create IPA
+      build_app(
+        workspace: "Runner.xcworkspace",
+        scheme: "Runner",
+        export_method: "development",
+        output_directory: "./build",
+        clean: true
+      )
+    else
+      # Build debug without code signing
+      sh("cd ../../ && flutter build ios --debug --no-codesign")
+    end
+
+    UI.success("✅ CI build completed!")
+  end
+
+  # Error handling
+
+  error do |lane, exception|
+    UI.error("❌ Error in lane #{lane}: #{exception.message}")
+  end
+
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+    UI.success("✅ Lane #{lane} completed successfully!")
+  end
+end

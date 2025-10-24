@@ -51,6 +51,58 @@ flutter test
 flutter test test/widget_test.dart
 ```
 
+### iOS Cloud Builds
+
+The project includes GitHub Actions workflow and Fastlane configuration for automated iOS builds.
+
+**GitHub Actions:**
+```bash
+# Workflow file: .github/workflows/ios-build.yml
+# Triggers: Push to master/main, pull requests, manual dispatch
+# Builds: Debug (no code signing) and Release (with code signing)
+```
+
+**Fastlane Lanes:**
+```bash
+cd ios
+
+# Development builds
+fastlane build_dev              # Debug build without code signing
+fastlane test                   # Run tests and analysis
+fastlane clean                  # Clean build artifacts
+
+# Release builds (requires code signing setup)
+fastlane build_release          # Build release IPA
+fastlane beta                   # Upload to TestFlight
+fastlane release                # Upload to App Store
+
+# CI/CD
+fastlane ci_build build_type:debug     # CI debug build
+fastlane ci_build build_type:release   # CI release build
+
+# Versioning
+fastlane bump_build             # Increment build number
+fastlane set_version version:1.0.0     # Set version number
+```
+
+**Code Signing Setup (GitHub Actions):**
+
+Configure these secrets in GitHub repository settings (Settings → Secrets and variables → Actions):
+- `IOS_CERTIFICATE_BASE64`: Base64-encoded .p12 developer certificate
+  ```bash
+  base64 -i certificate.p12 | pbcopy  # macOS
+  base64 -w 0 certificate.p12         # Linux
+  ```
+- `IOS_CERTIFICATE_PASSWORD`: Password for .p12 certificate
+- `IOS_PROVISIONING_PROFILE_BASE64`: Base64-encoded provisioning profile
+  ```bash
+  base64 -i profile.mobileprovision | pbcopy  # macOS
+  base64 -w 0 profile.mobileprovision         # Linux
+  ```
+- `KEYCHAIN_PASSWORD`: Temporary keychain password (any secure string)
+
+**Fastlane Documentation:** See `ios/fastlane/README.md` for detailed setup instructions.
+
 ## Architecture
 
 ### Current Implementation
@@ -146,7 +198,7 @@ dev_dependencies:
 
 ### iOS Setup
 
-**Required:** Create entitlements file `ios/Runner/Runner.entitlements`:
+**Entitlements:** Smartcard entitlement configured in `ios/Runner/Runner.entitlements`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -159,13 +211,21 @@ dev_dependencies:
 </plist>
 ```
 
-**Status:** ⚠️ File does not exist yet
+**Status:** ✅ Entitlements file created
 
 **Build Configuration:**
 - iOS 13.0+ required (from ccid package)
 - Swift-based AppDelegate in `ios/Runner/AppDelegate.swift`
 - Standard Flutter plugin registration
 - Requires MFi-certified smartcard readers (Lightning or USB-C)
+- Export options configured in `ios/Runner/ExportOptions.plist`
+- Fastlane automation available in `ios/fastlane/`
+
+**Cloud Build:**
+- GitHub Actions workflow: `.github/workflows/ios-build.yml`
+- Runs on macOS-14 runner with Xcode 15.0
+- Supports debug builds (no code signing) and release builds (with code signing)
+- Artifacts uploaded for 30 days (release) or 7 days (debug)
 
 ## Hardware Requirements
 
