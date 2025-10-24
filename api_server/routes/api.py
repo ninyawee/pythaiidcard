@@ -47,7 +47,7 @@ async def get_status(monitor=Depends(get_card_monitor)):
 
         return ServerStatus(
             status="running",
-            version="2.2.0",
+            version="2.3.0",
             readers_available=len(readers_info),
             card_detected=monitor_status["card_present"],
             reader_name=monitor_status["reader_name"],

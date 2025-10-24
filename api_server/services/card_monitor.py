@@ -18,6 +18,7 @@ from pythaiidcard.models import ThaiIDCard
 
 from ..models.api_models import WebSocketEvent, WebSocketEventType
 from .connection_manager import ConnectionManager
+from .pcsc_monitor import PCSCMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class CardMonitorService:
     and automatically reads card data when a card is detected.
     """
 
-    VERSION = "2.2.0"
+    VERSION = "2.3.0"
 
     def __init__(self, connection_manager: ConnectionManager, auto_read_on_insert: bool = False):
         """
@@ -54,37 +55,223 @@ class CardMonitorService:
             f"auto-read: {'enabled' if auto_read_on_insert else 'disabled - on-demand mode'})"
         )
 
-    async def start_monitoring(self, poll_interval: float = 1.0):
+    async def _wait_for_readers_available(self, pcsc_monitor: PCSCMonitor) -> list[str]:
         """
-        Start monitoring for card events.
+        Wait for card readers to become available.
+
+        This method blocks until at least one reader is detected.
 
         Args:
-            poll_interval: Time in seconds between reader polls (default: 1.0)
-        """
-        self.monitoring = True
-        logger.info(f"Card monitoring started (version {self.VERSION})")
+            pcsc_monitor: The PC/SC monitor instance
 
+        Returns:
+            list[str]: List of available reader names
+        """
         while self.monitoring:
             try:
-                await self._check_readers()
-            except Exception as e:
-                logger.error(f"Error in card monitoring loop: {e}")
+                readers = await asyncio.to_thread(pcsc_monitor.list_readers)
+
+                if readers and len(readers) > 0:
+                    logger.info(f"Found {len(readers)} reader(s): {readers}")
+                    return readers
+
+                logger.warning("No readers found, waiting 2 seconds...")
                 await self.broadcast_event(
                     WebSocketEvent(
-                        type=WebSocketEventType.ERROR,
-                        message=f"Monitoring error: {str(e)}",
-                        error_code="MONITORING_ERROR",
+                        type=WebSocketEventType.READER_STATUS,
+                        message="No card readers detected - waiting...",
+                        data={"status": "no_readers"},
                     )
                 )
+                await asyncio.sleep(2)
 
-            # Adaptive polling: check less frequently when card is already present
-            # to reduce log spam and CPU usage
-            if self.card_present and self.reader:
-                # Card is present and connected - check every 5 seconds for removal
-                await asyncio.sleep(poll_interval * 5)
-            else:
-                # No card - check every second for insertion
-                await asyncio.sleep(poll_interval)
+            except Exception as e:
+                logger.error(f"Error listing readers: {e}")
+                await asyncio.sleep(2)
+
+        return []
+
+    async def _wait_for_card_present(self, pcsc_monitor: PCSCMonitor) -> Optional[str]:
+        """
+        Wait for a card to be inserted (event-driven, no polling).
+
+        Uses SCardGetStatusChange with infinite timeout to block until
+        a card is physically inserted into any monitored reader.
+
+        Args:
+            pcsc_monitor: The PC/SC monitor instance
+
+        Returns:
+            Optional[str]: Reader name where card was detected, or None if monitoring stopped
+        """
+        try:
+            # This blocks until a card is inserted (hardware-level event)
+            reader_index, reader_name = await asyncio.to_thread(
+                pcsc_monitor.wait_for_card_present
+            )
+            logger.info(f"Card insertion detected in reader: {reader_name}")
+            return reader_name
+
+        except Exception as e:
+            logger.error(f"Error waiting for card present: {e}")
+            return None
+
+    async def _wait_for_card_removed(self, pcsc_monitor: PCSCMonitor) -> Optional[str]:
+        """
+        Wait for a card to be removed (event-driven, no polling).
+
+        Uses SCardGetStatusChange with infinite timeout to block until
+        a card is physically removed from any monitored reader.
+
+        Args:
+            pcsc_monitor: The PC/SC monitor instance
+
+        Returns:
+            Optional[str]: Reader name where card was removed, or None if monitoring stopped
+        """
+        try:
+            # This blocks until a card is removed (hardware-level event)
+            reader_index, reader_name = await asyncio.to_thread(
+                pcsc_monitor.wait_for_card_removed
+            )
+            logger.info(f"Card removal detected from reader: {reader_name}")
+            return reader_name
+
+        except Exception as e:
+            logger.error(f"Error waiting for card removed: {e}")
+            return None
+
+    async def start_monitoring(self, poll_interval: float = 1.0):
+        """
+        Start monitoring for card events using event-driven detection.
+
+        This method uses SCardGetStatusChange for blocking, hardware-level
+        event detection. No polling is performed - the monitor waits for
+        actual hardware events (card insertion/removal).
+
+        Args:
+            poll_interval: Deprecated - kept for API compatibility but not used
+        """
+        self.monitoring = True
+        logger.info(f"Card monitoring started (version {self.VERSION}, event-driven mode)")
+
+        # Create PC/SC monitor for event-driven detection
+        pcsc_monitor = PCSCMonitor()
+
+        try:
+            # Establish PC/SC context
+            await asyncio.to_thread(pcsc_monitor.establish_context)
+
+            # Event-driven state machine loop (matches Go implementation)
+            while self.monitoring:
+                try:
+                    # Step 1: Wait for readers to be available
+                    readers = await self._wait_for_readers_available(pcsc_monitor)
+                    if not readers or not self.monitoring:
+                        continue
+
+                    # Initialize reader states for monitoring
+                    await asyncio.to_thread(pcsc_monitor.init_reader_states, readers)
+
+                    # Update current reader name
+                    reader_name = readers[0]
+                    if reader_name != self.current_reader_name:
+                        self.current_reader_name = reader_name
+                        await self.broadcast_event(
+                            WebSocketEvent(
+                                type=WebSocketEventType.READER_STATUS,
+                                message="Card reader connected",
+                                reader=reader_name,
+                                data={"status": "reader_connected"},
+                            )
+                        )
+
+                    # Step 2: Wait for card inserted (blocks until hardware event)
+                    logger.info("Waiting for card insertion...")
+                    reader_name = await self._wait_for_card_present(pcsc_monitor)
+
+                    if not reader_name or not self.monitoring:
+                        continue
+
+                    # Card detected
+                    self.card_present = True
+                    await self.broadcast_event(
+                        WebSocketEvent(
+                            type=WebSocketEventType.CARD_INSERTED,
+                            message="Card detected - ready for reading" if not self.auto_read_on_insert else "Card detected - reading automatically...",
+                            reader=reader_name,
+                        )
+                    )
+
+                    # Try to connect to the card
+                    try:
+                        self.reader = ThaiIDCardReader(reader_index=0)
+                        self.reader.connect()
+                        logger.info("Connected to card successfully")
+
+                        # Step 3: Auto-read if enabled (v2.3.0: on-demand by default)
+                        if self.auto_read_on_insert:
+                            logger.info("Auto-read enabled - reading card data...")
+                            await self.read_and_broadcast(include_photo=True)
+                        else:
+                            logger.info("On-demand mode - waiting for manual read request")
+
+                    except Exception as e:
+                        logger.error(f"Error connecting to card: {e}")
+                        await self.broadcast_event(
+                            WebSocketEvent(
+                                type=WebSocketEventType.ERROR,
+                                message=f"Failed to connect to card: {str(e)}",
+                                error_code="CARD_CONNECTION_ERROR",
+                            )
+                        )
+
+                    # Step 4: Wait for card removed (blocks until hardware event)
+                    logger.info("Waiting for card removal...")
+                    reader_name = await self._wait_for_card_removed(pcsc_monitor)
+
+                    if not self.monitoring:
+                        break
+
+                    # Card removed
+                    logger.info("Card removed - invalidating cache")
+                    self.card_present = False
+                    self.cache_valid = False
+
+                    # Disconnect reader
+                    if self.reader:
+                        try:
+                            self.reader.disconnect()
+                        except Exception:
+                            pass
+                        self.reader = None
+
+                    await self.broadcast_event(
+                        WebSocketEvent(
+                            type=WebSocketEventType.CARD_REMOVED,
+                            message="Card removed",
+                            reader=reader_name or self.current_reader_name,
+                        )
+                    )
+
+                    # Loop continues - wait for next card insertion
+
+                except Exception as e:
+                    logger.error(f"Error in monitoring loop: {e}")
+                    await self.broadcast_event(
+                        WebSocketEvent(
+                            type=WebSocketEventType.ERROR,
+                            message=f"Monitoring error: {str(e)}",
+                            error_code="MONITORING_ERROR",
+                        )
+                    )
+                    # Wait a bit before retrying on error
+                    await asyncio.sleep(2)
+
+        finally:
+            # Clean up PC/SC context
+            logger.info("Releasing PC/SC context")
+            await asyncio.to_thread(pcsc_monitor.release_context)
 
     def stop_monitoring(self):
         """Stop the monitoring loop."""
@@ -96,117 +283,6 @@ class CardMonitorService:
             except Exception:
                 pass
             self.reader = None
-
-    async def _check_readers(self):
-        """Check for available readers and card presence."""
-        try:
-            # Get available readers
-            readers = ThaiIDCardReader.list_readers()
-
-            if not readers:
-                # No readers detected
-                if self.current_reader_name is not None:
-                    # Reader was removed
-                    logger.warning("No card readers detected")
-                    await self.broadcast_event(
-                        WebSocketEvent(
-                            type=WebSocketEventType.READER_STATUS,
-                            message="No card readers detected",
-                            data={"status": "no_readers"},
-                        )
-                    )
-                    self.current_reader_name = None
-                    self.card_present = False
-                return
-
-            # Use first available reader (extract name from CardReaderInfo)
-            reader_info = readers[0]
-            reader_name = reader_info.name
-
-            # Check if this is a new reader
-            if reader_name != self.current_reader_name:
-                logger.info(f"Reader detected: {reader_name}")
-                self.current_reader_name = reader_name
-                await self.broadcast_event(
-                    WebSocketEvent(
-                        type=WebSocketEventType.READER_STATUS,
-                        message="Card reader connected",
-                        reader=reader_name,
-                        data={"status": "reader_connected"},
-                    )
-                )
-
-            # Try to detect card
-            await self._check_card_presence(reader_name)
-
-        except Exception as e:
-            logger.error(f"Error checking readers: {e}")
-
-    async def _check_card_presence(self, reader_name: str):
-        """
-        Check if a card is present and read it if newly inserted.
-
-        Args:
-            reader_name: Name of the reader to check
-        """
-        # If card is already present, skip checking (avoid connect/disconnect spam)
-        # The existing connection will be used for reads, and removal will be detected
-        # via exceptions during read operations
-        if self.card_present and self.reader:
-            # Card is already known to be present, no need to reconnect
-            return
-
-        try:
-            # Try to connect to reader using index 0 (first reader)
-            temp_reader = ThaiIDCardReader(reader_index=0)
-            temp_reader.connect()
-
-            # Card is present and connected (this is a new insertion)
-            logger.info("Card inserted")
-            self.card_present = True
-            self.reader = temp_reader
-
-            await self.broadcast_event(
-                WebSocketEvent(
-                    type=WebSocketEventType.CARD_INSERTED,
-                    message="Card detected - ready for reading" if not self.auto_read_on_insert else "Card detected - reading automatically...",
-                    reader=reader_name,
-                )
-            )
-
-            # Automatically read the card with photo (if enabled)
-            # v2.2.0: Default is on-demand mode due to hardware limitations with some readers
-            # (e.g., Alcor Link AK9563 cannot reliably auto-read on insertion)
-            if self.auto_read_on_insert:
-                logger.info("Auto-read enabled - reading card data with photo...")
-                await self.read_and_broadcast(include_photo=True)
-            else:
-                logger.info("On-demand mode - waiting for manual read request")
-
-        except (NoCardDetectedError, CardConnectionError):
-            # No card present
-            if self.card_present:
-                # Card was removed
-                logger.info("Card removed - invalidating cache")
-                self.card_present = False
-                self.cache_valid = False  # Invalidate cache on card removal
-                if self.reader:
-                    try:
-                        self.reader.disconnect()
-                    except Exception:
-                        pass
-                    self.reader = None
-
-                await self.broadcast_event(
-                    WebSocketEvent(
-                        type=WebSocketEventType.CARD_REMOVED,
-                        message="Card removed",
-                        reader=reader_name,
-                    )
-                )
-
-        except Exception as e:
-            logger.error(f"Error checking card presence: {e}")
 
     async def read_and_broadcast(self, include_photo: bool = True):
         """
