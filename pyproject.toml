@@ -41,6 +41,8 @@ Repository = "https://github.com/ninyawee/pythaiidcard"
 
 [project.scripts]
 pythaiidcard = "pythaiidcard.cli:app"
+pythaiidcard-desktop = "desktop_client.main:main"
+pythaiidcard-server = "api_server.main:start_server"
 
 [dependency-groups]
 dev = [
@@ -50,4 +52,10 @@ dev = [
 docs = [
     "mkdocs-material>=9.5.0",
     "mkdocstrings[python]>=0.24.0",
+]
+desktop = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "PySide6>=6.8.0",
+    "websockets>=13.0",
 ]
