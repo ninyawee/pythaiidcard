@@ -1,0 +1,33 @@
+# Fastlane specific
+report.xml
+Preview.html
+screenshots
+test_output
+.env
+.env.*
+
+# Fastlane match
+certs/
+profiles/
+
+# Logs
+*.log
+fastlane/logs/
+fastlane/reports/
+fastlane/test_output/
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Credentials
+*.p12
+*.mobileprovision
+*.certSigningRequest
+*.cer
+
+# Build artifacts
+*.ipa
+*.dSYM.zip
+*.dSYM
