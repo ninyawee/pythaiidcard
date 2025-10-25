@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Header
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -15,6 +15,7 @@ from .services.connection_manager import ConnectionManager
 from .services.card_monitor import CardMonitorService
 from .routes import api
 from .models.api_models import WebSocketEvent, WebSocketEventType, WebSocketCommandType
+from .auth import get_passcode_manager
 
 # Configure logging
 logging.basicConfig(
@@ -170,16 +171,61 @@ async def websocket_endpoint(websocket: WebSocket):
     WebSocket endpoint for real-time card events.
 
     Clients connect here to receive card_inserted, card_removed, and card_read events.
+    Requires authentication via X-Auth-Passcode header for Chrome extension connections.
     """
-    await connection_manager.connect(websocket)
+    # Accept the WebSocket connection first
+    await websocket.accept()
+
+    # Check for authentication (header or query parameter)
+    # Header: X-Auth-Passcode (for programmatic clients that support it)
+    # Query param: passcode (for browser WebSocket which doesn't support custom headers)
+    passcode_from_header = websocket.headers.get("x-auth-passcode")
+    passcode_from_query = websocket.query_params.get("passcode")
+    provided_passcode = passcode_from_header or passcode_from_query
+
+    # Get passcode manager
+    passcode_manager = get_passcode_manager()
+    current_passcode_data = passcode_manager.load_passcode()
+
+    # If a passcode is configured, validate it
+    # Skip validation if no passcode is configured (backward compatibility for web app)
+    if current_passcode_data:
+        if not provided_passcode:
+            # Passcode required but not provided
+            await websocket.send_json({
+                "type": "auth_required",
+                "message": "Authentication required. Please provide passcode via X-Auth-Passcode header or ?passcode= query parameter.",
+            })
+            await websocket.close(code=1008, reason="Authentication required")
+            logger.warning("WebSocket connection rejected - no passcode provided")
+            return
+
+        # Validate the provided passcode
+        if not passcode_manager.validate_passcode(provided_passcode):
+            # Invalid passcode
+            await websocket.send_json({
+                "type": "auth_failed",
+                "message": "Invalid passcode. Please check your extension configuration.",
+            })
+            await websocket.close(code=1008, reason="Invalid passcode")
+            logger.warning("WebSocket connection rejected - invalid passcode")
+            return
+
+        # Authentication successful
+        auth_source = "header" if passcode_from_header else "query parameter"
+        logger.info(f"WebSocket authenticated successfully with passcode (via {auth_source})")
+
+    # Add to connection manager after authentication
+    connection_manager.active_connections.append(websocket)
 
     try:
         # Send welcome message
+        auth_status = "authenticated" if passcode_header else "open (no passcode configured)"
         await connection_manager.send_event(
             websocket,
             WebSocketEvent(
                 type=WebSocketEventType.CONNECTED,
-                message="WebSocket connected to Thai ID Card Reader",
+                message=f"WebSocket connected to Thai ID Card Reader - {auth_status}",
             ),
         )
 
@@ -215,11 +261,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
     except WebSocketDisconnect:
         logger.info("WebSocket client disconnected")
-        connection_manager.disconnect(websocket)
+        if websocket in connection_manager.active_connections:
+            connection_manager.disconnect(websocket)
 
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
-        connection_manager.disconnect(websocket)
+        if websocket in connection_manager.active_connections:
+            connection_manager.disconnect(websocket)
 
 
 def start_server(host: str = "127.0.0.1", port: int = 8765, reload: bool = False):

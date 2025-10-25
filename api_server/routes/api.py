@@ -11,6 +11,7 @@ from ..models.api_models import (
     CardReadResponse,
     ErrorResponse,
 )
+from ..auth import get_passcode_manager
 
 logger = logging.getLogger(__name__)
 
@@ -194,6 +195,135 @@ async def clear_cache(monitor=Depends(get_card_monitor)):
         }
     except Exception as e:
         logger.error(f"Error clearing cache: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/passcode/current")
+async def get_current_passcode():
+    """
+    Get the current passcode configuration.
+
+    Returns:
+        dict: Current passcode info (without revealing the passcode itself)
+    """
+    try:
+        passcode_manager = get_passcode_manager()
+        data = passcode_manager.load_passcode()
+
+        if data:
+            return {
+                "configured": True,
+                "created_at": data.get("created_at"),
+                "timestamp": datetime.now(),
+            }
+        else:
+            return {
+                "configured": False,
+                "message": "No passcode configured. Generate one to enable extension access.",
+                "timestamp": datetime.now(),
+            }
+    except Exception as e:
+        logger.error(f"Error getting passcode info: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/passcode/generate")
+async def generate_new_passcode(length: int = 10):
+    """
+    Generate a new random passcode for extension authentication.
+
+    Args:
+        length: Length of passcode (default: 10, min: 8, max: 16)
+
+    Returns:
+        dict: New passcode and creation timestamp
+    """
+    try:
+        # Validate length
+        if length < 8 or length > 16:
+            raise HTTPException(
+                status_code=400,
+                detail="Passcode length must be between 8 and 16 characters"
+            )
+
+        passcode_manager = get_passcode_manager()
+        data = passcode_manager.regenerate_passcode(length)
+
+        logger.info("New passcode generated via API")
+
+        return {
+            "success": True,
+            "passcode": data["passcode"],
+            "created_at": data["created_at"],
+            "message": "Passcode generated successfully. Configure this in your Chrome extension.",
+            "timestamp": datetime.now(),
+        }
+    except Exception as e:
+        logger.error(f"Error generating passcode: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/passcode/verify")
+async def verify_passcode(passcode: str):
+    """
+    Verify a passcode (used during extension pairing).
+
+    Args:
+        passcode: The passcode to verify
+
+    Returns:
+        dict: Verification result
+    """
+    try:
+        if not passcode:
+            raise HTTPException(status_code=400, detail="Passcode is required")
+
+        passcode_manager = get_passcode_manager()
+        is_valid = passcode_manager.validate_passcode(passcode)
+
+        if is_valid:
+            return {
+                "valid": True,
+                "message": "Passcode verified successfully",
+                "timestamp": datetime.now(),
+            }
+        else:
+            return {
+                "valid": False,
+                "message": "Invalid passcode",
+                "timestamp": datetime.now(),
+            }
+    except Exception as e:
+        logger.error(f"Error verifying passcode: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/passcode")
+async def delete_passcode():
+    """
+    Delete the current passcode (disables extension access).
+
+    Returns:
+        dict: Deletion result
+    """
+    try:
+        passcode_manager = get_passcode_manager()
+        deleted = passcode_manager.delete_passcode()
+
+        if deleted:
+            return {
+                "success": True,
+                "message": "Passcode deleted. Extension access disabled.",
+                "timestamp": datetime.now(),
+            }
+        else:
+            return {
+                "success": False,
+                "message": "No passcode to delete",
+                "timestamp": datetime.now(),
+            }
+    except Exception as e:
+        logger.error(f"Error deleting passcode: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

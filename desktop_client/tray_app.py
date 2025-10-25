@@ -16,6 +16,7 @@ from PySide6.QtCore import Qt, QTimer
 
 from .settings import Settings
 from .server_manager import ServerManager
+from .pairing_dialog import PairingDialog
 
 logger = logging.getLogger(__name__)
 
@@ -109,10 +110,10 @@ class TrayApp:
 
         self.menu.addSeparator()
 
-        # Settings (placeholder for now)
-        # settings_action = QAction("Settings...", self.menu)
-        # settings_action.triggered.connect(self.show_settings)
-        # self.menu.addAction(settings_action)
+        # Extension Pairing & Settings
+        pairing_action = QAction("Extension Pairing && Settings...", self.menu)
+        pairing_action.triggered.connect(self.show_pairing_dialog)
+        self.menu.addAction(pairing_action)
 
         # About
         about_action = QAction("About", self.menu)
@@ -246,6 +247,11 @@ class TrayApp:
         url = f"{self.settings.server_url}/docs"
         logger.info(f"Opening API docs: {url}")
         webbrowser.open(url)
+
+    def show_pairing_dialog(self):
+        """Show the extension pairing and settings dialog."""
+        dialog = PairingDialog(self.settings)
+        dialog.exec()
 
     def show_about(self):
         """Show about dialog."""

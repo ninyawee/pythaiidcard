@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thai ID Card Reader</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Thai ID Card Reader</h1>
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Disconnected</span>
+      </div>
+    </div>
+
+    <!-- Configuration Section -->
+    <div class="section" id="configSection">
+      <h2>Configuration</h2>
+      <div class="form-group">
+        <label for="passcodeInput">Passcode:</label>
+        <div class="input-group">
+          <input
+            type="text"
+            id="passcodeInput"
+            placeholder="Enter passcode from desktop app"
+            autocomplete="off"
+          >
+          <button id="connectButton" class="btn btn-primary">Connect</button>
+        </div>
+        <small class="help-text">
+          Get the passcode from the desktop app's "Extension Pairing & Settings" menu
+        </small>
+      </div>
+    </div>
+
+    <!-- Card Data Section -->
+    <div class="section" id="cardDataSection" style="display: none;">
+      <h2>Card Data</h2>
+
+      <div class="card-info">
+        <div class="info-row">
+          <label>Citizen ID:</label>
+          <div class="info-value">
+            <span id="cidValue">-</span>
+            <button class="btn-icon" id="copyCidButton" title="Copy CID">📋</button>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <label>Thai Name:</label>
+          <div class="info-value">
+            <span id="thaiNameValue">-</span>
+            <button class="btn-icon" id="copyThaiNameButton" title="Copy Thai name">📋</button>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <label>English Name:</label>
+          <div class="info-value">
+            <span id="englishNameValue">-</span>
+            <button class="btn-icon" id="copyEnglishNameButton" title="Copy English name">📋</button>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <label>Date of Birth:</label>
+          <div class="info-value">
+            <span id="dobValue">-</span>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <label>Address:</label>
+          <div class="info-value">
+            <span id="addressValue">-</span>
+            <button class="btn-icon" id="copyAddressButton" title="Copy address">📋</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="downloadButton" class="btn btn-secondary">
+          Download JSON
+        </button>
+        <button id="triggerReadButton" class="btn btn-primary">
+          Read Card Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="section">
+      <h2>Settings</h2>
+
+      <div class="toggle-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="autoFillToggle" checked>
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">Auto-fill forms</span>
+        </label>
+        <small class="help-text">
+          Automatically fill PeakAccount forms when card is read
+        </small>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <small id="serverUrlDisplay">Server: ws://localhost:8765/ws</small>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
