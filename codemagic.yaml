@@ -5,7 +5,7 @@ workflows:
     instance_type: mac_mini_m2
     working_directory: playground/thai_idcard_reader_test
     environment:
-      flutter: 3.24.0
+      flutter: 3.38.9
       xcode: 16.2
       cocoapods: default
     scripts:
@@ -27,7 +27,7 @@ workflows:
     instance_type: mac_mini_m2
     working_directory: playground/thai_idcard_reader_test
     environment:
-      flutter: 3.24.0
+      flutter: 3.38.9
       xcode: 16.2
       cocoapods: default
       ios_signing:
