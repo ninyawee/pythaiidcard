@@ -3,6 +3,7 @@ workflows:
     name: iOS Debug Build
     max_build_duration: 30
     instance_type: mac_mini_m2
+    working_directory: playground/thai_idcard_reader_test
     environment:
       flutter: 3.24.0
       xcode: 15.4
@@ -18,19 +19,20 @@ workflows:
         script: |
           flutter build ios --debug --no-codesign
     artifacts:
-      - build/ios/iphoneos/*.app
+      - playground/thai_idcard_reader_test/build/ios/iphoneos/*.app
 
   ios-release:
     name: iOS Release Build (Signed)
     max_build_duration: 30
     instance_type: mac_mini_m2
+    working_directory: playground/thai_idcard_reader_test
     environment:
       flutter: 3.24.0
       xcode: 15.4
       cocoapods: default
       ios_signing:
         distribution_type: development
-        bundle_identifier: com.example.thaiIdcardReaderTest
+        bundle_identifier: org.nutchanon.thaiIdcardReaderTest
     scripts:
       - name: Get Flutter dependencies
         script: flutter pub get
@@ -45,8 +47,8 @@ workflows:
           flutter build ipa --debug \
             --export-options-plist=/Users/builder/export_options.plist
     artifacts:
-      - build/ios/ipa/*.ipa
+      - playground/thai_idcard_reader_test/build/ios/ipa/*.ipa
     publishing:
       email:
         recipients:
-          - your-email@example.com  # Change this
+          - life.particles@gmail.com
