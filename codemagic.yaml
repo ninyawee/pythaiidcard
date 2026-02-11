@@ -9,6 +9,12 @@ workflows:
       xcode: 16.2
       cocoapods: default
     scripts:
+      - name: Debug working directory
+        script: |
+          echo "PWD: $(pwd)"
+          ls -la
+          echo "---"
+          ls -la lib/ || echo "No lib/ directory"
       - name: Get Flutter dependencies
         script: flutter pub get
       - name: Install CocoaPods
